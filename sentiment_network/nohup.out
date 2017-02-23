@@ -1,0 +1,28 @@
+[I 17:36:52.035 NotebookApp] Writing notebook server cookie secret to /run/user/1001/jupyter/notebook_cookie_secret
+[W 17:36:53.836 NotebookApp] WARNING: The notebook server is listening on all IP addresses and not using encryption. This is not recommended.
+[I 17:36:54.129 NotebookApp] Loaded server extension jupyter_nbextensions_configurator
+[I 17:36:54.132 NotebookApp] Serving notebooks from local directory: /home/ritesh_malaiya/my_projects/deep_learning_foundations/sentiment_network
+[I 17:36:54.133 NotebookApp] 0 active kernels 
+[I 17:36:54.133 NotebookApp] The Jupyter Notebook is running at: http://[all ip addresses on your system]:9999/
+[I 17:36:54.133 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[I 17:37:01.031 NotebookApp] 302 GET /api/terminals?_=1487086133134 (68.232.16.215) 1.55ms
+[I 17:37:01.032 NotebookApp] 302 GET /api/sessions?_=1487086133133 (68.232.16.215) 0.77ms
+[I 17:37:05.140 NotebookApp] 302 GET /tree/assignments (68.232.16.215) 0.77ms
+[I 17:37:09.727 NotebookApp] 302 POST /login?next=%2Ftree%2Fassignments (68.232.16.215) 1.15ms
+[W 17:37:09.829 NotebookApp] 404 GET /tree/assignments (68.232.16.215) 26.76ms referer=http://104.198.204.169:9999/login?next=%2Ftree%2Fassignments
+[I 17:37:16.629 NotebookApp] 302 GET / (68.232.16.215) 0.48ms
+[W 17:39:23.573 NotebookApp] 404 GET /image.gif (68.232.16.215) 1.33ms referer=http://104.198.204.169:9999/tree?
+[W 17:40:02.392 NotebookApp] Notebook Sentiment Classification - Intro.ipynb is not trusted
+[I 17:40:02.903 NotebookApp] Kernel started: 3b00a456-b84e-48ec-bf57-77e650c01f57
+[I 17:42:03.363 NotebookApp] Saving file at /Sentiment Classification - Intro.ipynb
+[W 17:42:13.364 NotebookApp] Notebook Sentiment Classification - Mini Project 1.ipynb is not trusted
+[I 17:42:14.549 NotebookApp] Kernel started: 521b8882-c38e-4376-a71a-91c45228840d
+[I 17:44:04.342 NotebookApp] Saving file at /Sentiment Classification - Intro.ipynb
+[I 17:44:15.776 NotebookApp] Saving file at /Sentiment Classification - Mini Project 1.ipynb
+[W 17:44:15.776 NotebookApp] Saving untrusted notebook Sentiment Classification - Mini Project 1.ipynb
+[W 17:50:33.992 NotebookApp] WebSocket ping timeout after 119969 ms.
+[W 17:50:45.207 NotebookApp] WebSocket ping timeout after 119939 ms.
+[C 18:58:05.208 NotebookApp] received signal 15, stopping
+[I 18:58:05.209 NotebookApp] Shutting down kernels
+[I 18:58:05.310 NotebookApp] Kernel shutdown: 3b00a456-b84e-48ec-bf57-77e650c01f57
+[I 18:58:05.310 NotebookApp] Kernel shutdown: 521b8882-c38e-4376-a71a-91c45228840d
