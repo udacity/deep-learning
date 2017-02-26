@@ -11,6 +11,7 @@
 2. Clone this repository:
 
         git clone https://github.com/ludwiktrammer/deep-learning.git
+    Note: There are couple minor differences between my repository and the original Udacity repository. You can read about them [at the bottom of this page](#how-is-this-repository-different-from-the-original). To follow this instructions you need to use my repository.
 3. Enter the folder for the image classification project:
 
         cd image-classification
