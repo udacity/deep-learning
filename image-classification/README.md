@@ -23,7 +23,7 @@
 
 6. Run the project:
 
-       floyd run --gpu --env tensorflow --mode jupyter --data diSgciLH4WA7HpcHNasP9j
+        floyd run --gpu --env tensorflow --mode jupyter --data diSgciLH4WA7HpcHNasP9j
 
     It will be run on a machine with GPU (`--gpu`), using a Tenserflow environment (`--env tensorflow`), as a Jupyter notebook (`--mode jupyter`), with Floyd's built-in cifar-10 dataset  available (`--data diSgciLH4WA7HpcHNasP9j`).
     
