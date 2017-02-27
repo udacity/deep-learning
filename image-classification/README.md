@@ -1,6 +1,6 @@
 ## Running the Udacity Deep Learning Foundations image classification project on floydhub.com
 
-1. Create an account on [floydhub.com](https://www.floydhub.com) (don't forget to confirm your email). You will automatically receive $100 in free credits. 
+1. Create an account on [floydhub.com](https://www.floydhub.com) (don't forget to confirm your email). You will automatically receive 100 free GPU hours. 
 2. Install the `floyd` command on your computer:
 
         pip install -U floyd-cli
@@ -30,7 +30,7 @@
     
 7. Wait for the Jupyter notebook to become available and then access the URL displayed in the terminal (described as "path to jupyter notebook"). You will see the notebook.
 
-8. Remember to explicitly stop the experiment when you are not using the notebook. As long as it runs (even in the background) it will cost money ($0.00012 per second, which ammounts to $0.432 per hour - this means that the $100 free credit will last you more than 230 hours in total). You can stop an experiment in the ["Experiments" section on floyd.com](https://www.floydhub.com/experiments) or using the `floyd stop` command:
+8. Remember to explicitly stop the experiment when you are not using the notebook. As long as it runs (even in the background) it will cost GPU hours. You can stop an experiment in the ["Experiments" section on floyd.com](https://www.floydhub.com/experiments) or using the `floyd stop` command:
 
         floyd stop ID
     (where ID is the "RUN ID" displayed in the terminal when you run the project; if you lost it you can also find it in the ["Experiments" section on floyd.com](https://www.floydhub.com/experiments))
