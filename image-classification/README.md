@@ -1,23 +1,31 @@
 ## Running the Udacity Deep Learning Foundations image classification project on floydhub.com
 
 1. Create an account on [floydhub.com](https://www.floydhub.com) (don't forget to confirm your email). You will automatically receive 100 free GPU hours. 
+
 2. Install the `floyd` command on your computer:
 
         pip install -U floyd-cli
+
 3. Associate the command with your Floyd account:
 
         floyd login
+
     (a page with authentication token will open; you will need to copy the token into your terminal)
+
 2. Clone this repository:
 
         git clone https://github.com/ludwiktrammer/deep-learning.git
+
     Note: There are couple minor differences between my repository and the original Udacity repository. You can read about them [at the bottom of this page](#how-is-this-repository-different-from-the-original). To follow this instructions you need to use my repository.
+
 3. Enter the folder for the image classification project:
 
         cd image-classification
+
 4. Initiate a Floyd project:
 
         floyd init dlnd_image_classification
+
 5. Add data files to `.floydignore` (so they are not transferred to Floyed every time you run the project - it would be a waste of time):
 
         echo $'cifar-10-python.tar.gz\ncifar-10-batches-py' >> .floydignore
@@ -33,11 +41,13 @@
 8. Remember to explicitly stop the experiment when you are not using the notebook. As long as it runs (even in the background) it will cost GPU hours. You can stop an experiment in the ["Experiments" section on floyd.com](https://www.floydhub.com/experiments) or using the `floyd stop` command:
 
         floyd stop ID
+ 
     (where ID is the "RUN ID" displayed in the terminal when you run the project; if you lost it you can also find it in the ["Experiments" section on floyd.com](https://www.floydhub.com/experiments))
     
 **Important:** When you run a project it will always start from scratch (i.e. from the state present *locally* on your computer). If you made changes in the remote jupiter notebook during a previous run, the changes will **not** be present in the subsequent runs. To make them permanent you need to add the changes to your local project folder. You can download them using the `floyd output` command:
 
     floyd output ID
+
 (where ID is the "RUN ID" displayed in the terminal when you run the project; if you lost it you can also find it in the ["Experiments" section on floyd.com](https://www.floydhub.com/experiments))
     
 You can do this whenever you like, even long after you stopped the experiment. Just run the command above, download `dlnd_image_classification.ipynb` and replace your local version with the newly downloaded one.
@@ -45,5 +55,7 @@ You can do this whenever you like, even long after you stopped the experiment. J
 ## How is this repository different from [the original](https://github.com/udacity/deep-learning)?
 
 1. I added support for Floyds built-in cifar-10 dataset. If its presence is detected, it will be used, without a need to download anything. ([see commit](https://github.com/ludwiktrammer/deep-learning/commit/2e84ff7852905f154f1692f67ca15da28ac43149))
+
 2. I added a `floyd_requirements.txt` file, so an additional dependency is automatically taken care of. ([see commit](https://github.com/ludwiktrammer/deep-learning/commit/80b459411d4395dacf8f46be0b028c81858bd97a))
+
 3. I added this README
