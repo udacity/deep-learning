@@ -44,13 +44,15 @@
  
     (where ID is the "RUN ID" displayed in the terminal when you run the project; if you lost it you can also find it in the ["Experiments" section on floyd.com](https://www.floydhub.com/experiments))
     
-**Important:** When you run a project it will always start from scratch (i.e. from the state present *locally* on your computer). If you made changes in the remote jupiter notebook during a previous run, the changes will **not** be present in the subsequent runs. To make them permanent you need to add the changes to your local project folder. You can download them using the `floyd output` command:
+**Important:** When you run a project it will always start from scratch (i.e. from the state present *locally* on your computer). If you made changes in the remote jupiter notebook during a previous run, the changes will **not** be present in the subsequent runs. To make them permanent you need to add the changes to your local project folder. When running the notebook you can do this directly in Jupyter - *File / Download / Notebook*. After downloading it, just replace your local `dlnd_image_classification.ipynb` file with the newly downloaded one.
+
+If you already stoped the experiment, you can still download the file using the `floyd output` command:
 
     floyd output ID
 
 (where ID is the "RUN ID" displayed in the terminal when you run the project; if you lost it you can also find it in the ["Experiments" section on floyd.com](https://www.floydhub.com/experiments))
     
-You can do this whenever you like, even long after you stopped the experiment. Just run the command above, download `dlnd_image_classification.ipynb` and replace your local version with the newly downloaded one.
+Just run the command above, download `dlnd_image_classification.ipynb` and replace your local version with the newly downloaded one.
 
 ## How is this repository different from [the original](https://github.com/udacity/deep-learning)?
 
