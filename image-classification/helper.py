@@ -155,7 +155,7 @@ def display_image_predictions(features, labels, predictions):
         pred_names = [label_names[pred_i] for pred_i in pred_indicies]
         correct_name = label_names[label_id]
 
-        axies[image_i][0].imshow(feature*255)
+        axies[image_i][0].imshow(feature)
         axies[image_i][0].set_title(correct_name)
         axies[image_i][0].set_axis_off()
 
