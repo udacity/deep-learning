@@ -58,6 +58,6 @@ Just run the command above, download `dlnd_image_classification.ipynb` and repla
 
 2. I added a `floyd_requirements.txt` file, so an additional dependency is automatically taken care of. ([see the commit](https://github.com/ludwiktrammer/deep-learning/commit/80b459411d4395dacf8f46be0b028c81858bd97a), [learn more about `.floyd_requirements.txt` files](http://docs.floydhub.com/home/installing_dependencies/))
 
-3. I added a `.floydignore` file to stop local data from being uploaded to Floyd - which wastes time and may even result in a timeout ([see the commit](https://github.com/ludwiktrammer/deep-learning/commit/30d4b536b67366feef38425ce1406e969452717e), [learn a little about `.floydignore` files](http://docs.floydhub.com/commands/init/#description))
+3. I added a `.floydignore` file to stop local data from being uploaded to Floyd - which wastes time and may even result in a timeout ([see the commit](https://github.com/ludwiktrammer/deep-learning/commit/30d4b536b67366feef38425ce1406e969452717e), [learn more about `.floydignore` files](http://docs.floydhub.com/home/floyd_ignore/))
 
 3. I added this README
