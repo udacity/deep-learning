@@ -55,7 +55,7 @@ def display_stats(cifar10_dataset_folder_path, batch_id, sample_id):
     print('Label - Label Id: {} Name: {}'.format(sample_label, label_names[sample_label]))
     plt.subplots()
     plt.axis('off')
-    #plt.imshow(sample_image)
+    plt.imshow(sample_image)
 
 
 def _preprocess_and_save(normalize, one_hot_encode, features, labels, filename):
