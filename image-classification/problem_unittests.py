@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 
 
 def _print_success_message():
-    return print('Tests Passed')
+    print('Tests Passed')
 
 
 def test_folder_path(cifar10_dataset_folder_path):
