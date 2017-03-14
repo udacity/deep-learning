@@ -20,3 +20,5 @@ Finally, we explore the various combinations for tuning the model by changing so
 - Tensorflow
 - Numpy
 - Jupyter Notebook
+
+*This notebook is part of my studies on Deep Neural Networks in the Deep Learning Foundations Nanodegree by Udacity.*
