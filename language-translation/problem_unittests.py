@@ -153,8 +153,8 @@ def test_decoding_layer(decoding_layer):
 
         assert train_output.get_shape().as_list() == [batch_size, None, vocab_size],\
             'Train Logits is the wrong shape: {}'.format(train_output.get_shape())
-        assert train_output.get_shape().as_list() == [batch_size, None, vocab_size], \
-            'Inference Logits is the wrong shape: {}'.format(train_output.get_shape())
+        assert inf_output.get_shape().as_list() == [None, None, vocab_size], \
+            'Inference Logits is the wrong shape: {}'.format(inf_output.get_shape())
 
     _print_success_message()
 
@@ -181,8 +181,8 @@ def test_seq2seq_model(seq2seq_model):
 
         assert train_output.get_shape().as_list() == [batch_size, None, target_vocab_size],\
             'Train Logits is the wrong shape: {}'.format(train_output.get_shape())
-        assert train_output.get_shape().as_list() == [batch_size, None, target_vocab_size], \
-            'Inference Logits is the wrong shape: {}'.format(train_output.get_shape())
+        assert inf_output.get_shape().as_list() == [None, None, target_vocab_size], \
+            'Inference Logits is the wrong shape: {}'.format(inf_output.get_shape())
 
 
     _print_success_message()
