@@ -5,3 +5,10 @@ embeddings/data/
 embeddings/text8.zip
 
 .ipynb_checkpoints/
+__pycache__
+params.p
+preprocess.p
+save.data-00000-of-00001
+save.index
+save.meta
+checkpoint
