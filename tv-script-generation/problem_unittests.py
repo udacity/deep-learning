@@ -208,7 +208,7 @@ def test_build_rnn(build_rnn):
     with tf.Graph().as_default():
         test_rnn_size = 256
         test_rnn_layer_size = 2
-        test_cell = rnn.MultiRNNCell([rnn.BasicLSTMCell(test_rnn_size)] * test_rnn_layer_size)
+        test_cell = rnn.MultiRNNCell([rnn.BasicLSTMCell(test_rnn_size) for _ in range(test_rnn_layer_size)])
 
         test_inputs = tf.placeholder(tf.float32, [None, None, test_rnn_size])
         outputs, final_state = build_rnn(test_cell, test_inputs)
@@ -233,11 +233,12 @@ def test_build_nn(build_nn):
         test_input_data_shape = [128, 5]
         test_input_data = tf.placeholder(tf.int32, test_input_data_shape)
         test_rnn_size = 256
+        test_embed_dim = 300
         test_rnn_layer_size = 2
         test_vocab_size = 27
-        test_cell = rnn.MultiRNNCell([rnn.BasicLSTMCell(test_rnn_size)] * test_rnn_layer_size)
+        test_cell = rnn.MultiRNNCell([rnn.BasicLSTMCell(test_rnn_size) for _ in range(test_rnn_layer_size)])
 
-        logits, final_state = build_nn(test_cell, test_rnn_size, test_input_data, test_vocab_size)
+        logits, final_state = build_nn(test_cell, test_rnn_size, test_input_data, test_vocab_size, test_embed_dim)
 
         # Check name
         assert hasattr(final_state, 'name'), \
