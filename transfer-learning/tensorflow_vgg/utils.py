@@ -21,7 +21,7 @@ def load_image(path):
     xx = int((img.shape[1] - short_edge) / 2)
     crop_img = img[yy: yy + short_edge, xx: xx + short_edge]
     # resize to 224, 224
-    resized_img = skimage.transform.resize(crop_img, (224, 224))
+    resized_img = skimage.transform.resize(crop_img, (224, 224), mode='constant')
     return resized_img
 
 
@@ -57,14 +57,14 @@ def load_image2(path, height=None, width=None):
     else:
         ny = img.shape[0]
         nx = img.shape[1]
-    return skimage.transform.resize(img, (ny, nx))
+    return skimage.transform.resize(img, (ny, nx), mode='constant')
 
 
 def test():
     img = skimage.io.imread("./test_data/starry_night.jpg")
     ny = 300
     nx = img.shape[1] * ny / img.shape[0]
-    img = skimage.transform.resize(img, (ny, nx))
+    img = skimage.transform.resize(img, (ny, nx), mode='constant')
     skimage.io.imsave("./test_data/test/output.jpg", img)
 
 
