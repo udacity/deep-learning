@@ -66,7 +66,7 @@ dependencies:
 - terminado=0.6=py36_0
 - testpath=0.3=py36_0
 - tk=8.5.18=0
-- tornado=4.5=py36_0
+- tornado=4.5.1=py36_0
 - traitlets=4.3.2=py36_0
 - wcwidth=0.1.7=py36_0
 - wheel=0.29.0=py36_0
