@@ -54,7 +54,7 @@ pyplot.imshow(helper.images_square_grid(mnist_images, 'L'), cmap='gray')
 
 
 
-    <matplotlib.image.AxesImage at 0x109a73550>
+    <matplotlib.image.AxesImage at 0x118ce9048>
 
 
 
@@ -79,7 +79,7 @@ pyplot.imshow(helper.images_square_grid(mnist_images, 'RGB'))
 
 
 
-    <matplotlib.image.AxesImage at 0x10d68c358>
+    <matplotlib.image.AxesImage at 0x1192fb518>
 
 
 
@@ -151,11 +151,11 @@ def model_inputs(image_width, image_height, image_channels, z_dim):
     :return: Tuple of (tensor of real input images, tensor of z data, learning rate)
     """
     # TODO: Implement Function
-    inputs = tf.placeholder(tf.float32, (None, image_width, image_height, image_channels), name="inputs")
-    z_data = tf.placeholder(tf.float32, (None, z_dim), name="z_data")
-    learning_rate = tf.placeholder(tf.float32, name="learning_rate")
+    inputs_real = tf.placeholder(tf.float32, shape=(None, image_width, image_height, image_channels), name='input_real') 
+    inputs_z = tf.placeholder(tf.float32, (None, z_dim), name='input_z')
+    learning_rate = tf.placeholder(tf.float32, name='learning_rate')
     
-    return inputs, z_data, learning_rate
+    return inputs_real, inputs_z, learning_rate
 
 
 """
@@ -179,18 +179,40 @@ def discriminator(images, reuse=False):
     :param reuse: Boolean if the weights should be reused
     :return: Tuple of (tensor output of the discriminator, tensor logits of the discriminator)
     """
-    n_units = 128
-    alpha = 0.01
-    # TODO: Implement Function
+    alpha = 0.2
+    
     with tf.variable_scope('discriminator', reuse=reuse):
-        h1 = tf.layers.dense(images, n_units, activation=None)
-        # leaky relu
-        h1 = tf.maximum(h1, alpha*h1)
+        # using 4 layer network as in DCGAN Paper
         
-        logits = tf.layers.dense(h1, 1, activation=None)
+        # Conv 1
+        conv1 = tf.layers.conv2d(images, 64, 5, 2, 'SAME')
+        lrelu1 = tf.maximum(alpha * conv1, conv1)
+        
+        # Conv 2
+        conv2 = tf.layers.conv2d(lrelu1, 128, 5, 2, 'SAME')
+        batch_norm2 = tf.layers.batch_normalization(conv2, training=True)
+        lrelu2 = tf.maximum(alpha * batch_norm2, batch_norm2)
+        
+        # Conv 3
+        conv3 = tf.layers.conv2d(lrelu2, 256, 5, 1, 'SAME')
+        batch_norm3 = tf.layers.batch_normalization(conv3, training=True)
+        lrelu3 = tf.maximum(alpha * batch_norm3, batch_norm3)
+        
+        # Conv 4
+        conv4 = tf.layers.conv2d(lrelu3, 512, 5, 1, 'SAME')
+        batch_norm4 = tf.layers.batch_normalization(conv4, training=True)
+        lrelu4 = tf.maximum(alpha * batch_norm4, batch_norm4)
+       
+        # Flatten
+        flat = tf.reshape(lrelu4, (-1, 7*7*512))
+        
+        # Logits
+        logits = tf.layers.dense(flat, 1)
+        
+        # Output
         out = tf.sigmoid(logits)
+        
         return out, logits
-
 
 """
 DON'T MODIFY ANYTHING IN THIS CELL THAT IS BELOW THIS LINE
@@ -198,70 +220,7 @@ DON'T MODIFY ANYTHING IN THIS CELL THAT IS BELOW THIS LINE
 tests.test_discriminator(discriminator, tf)
 ```
 
-
-    ---------------------------------------------------------------------------
-
-    ValueError                                Traceback (most recent call last)
-
-    /Users/ewann/miniconda3/envs/dl/lib/python3.6/site-packages/tensorflow/python/ops/check_ops.py in assert_rank(x, rank, data, summarize, message, name)
-        538       assert_op = _assert_rank_condition(x, rank, static_condition,
-    --> 539                                          dynamic_condition, data, summarize)
-        540 
-
-
-    /Users/ewann/miniconda3/envs/dl/lib/python3.6/site-packages/tensorflow/python/ops/check_ops.py in _assert_rank_condition(x, rank, static_condition, dynamic_condition, data, summarize)
-        480         raise ValueError(
-    --> 481             'Static rank condition failed', x_rank_static, rank_static)
-        482       return control_flow_ops.no_op(name='static_checks_determined_all_ok')
-
-
-    ValueError: ('Static rank condition failed', 4, array(2, dtype=int32))
-
-    
-    During handling of the above exception, another exception occurred:
-
-
-    ValueError                                Traceback (most recent call last)
-
-    <ipython-input-11-57d838db1610> in <module>()
-         22 DON'T MODIFY ANYTHING IN THIS CELL THAT IS BELOW THIS LINE
-         23 """
-    ---> 24 tests.test_discriminator(discriminator, tf)
-    
-
-    /Users/ewann/learning/deeplearning/deep-learning/face_generation/problem_unittests.py in func_wrapper(*args)
-         10     def func_wrapper(*args):
-         11         with tf.Graph().as_default():
-    ---> 12             result = func(*args)
-         13         print('Tests Passed')
-         14         return result
-
-
-    /Users/ewann/learning/deeplearning/deep-learning/face_generation/problem_unittests.py in test_discriminator(discriminator, tf_module)
-         75 
-         76         output, logits = discriminator(image)
-    ---> 77         _assert_tensor_shape(output, [None, 1], 'Discriminator Training(reuse=false) output')
-         78         _assert_tensor_shape(logits, [None, 1], 'Discriminator Training(reuse=false) Logits')
-         79         assert mock_variable_scope.called,\
-
-
-    /Users/ewann/learning/deeplearning/deep-learning/face_generation/problem_unittests.py in _assert_tensor_shape(tensor, shape, display_name)
-         18 
-         19 def _assert_tensor_shape(tensor, shape, display_name):
-    ---> 20     assert tf.assert_rank(tensor, len(shape), message='{} has wrong rank'.format(display_name))
-         21 
-         22     tensor_shape = tensor.get_shape().as_list() if len(shape) else []
-
-
-    /Users/ewann/miniconda3/envs/dl/lib/python3.6/site-packages/tensorflow/python/ops/check_ops.py in assert_rank(x, rank, data, summarize, message, name)
-        543         raise ValueError(
-        544             '%s.  Tensor %s must have rank %d.  Received rank %d, shape %s' %
-    --> 545             (message, x.name, e.args[2], e.args[1], x.get_shape()))
-        546       else:
-        547         raise
-
-
-    ValueError: Discriminator Training(reuse=false) output has wrong rank.  Tensor Sigmoid:0 must have rank 2.  Received rank 4, shape (?, 28, 28, 1)
+    Tests Passed
 
 
 ### Generator
@@ -277,9 +236,35 @@ def generator(z, out_channel_dim, is_train=True):
     :param is_train: Boolean if generator is being used for training
     :return: The tensor output of the generator
     """
-    # TODO: Implement Function
+    alpha = 0.2
     
-    return None
+    with tf.variable_scope('generator', reuse=False if is_train==True else True):
+        # Fully connected
+        fc1 = tf.layers.dense(z, 7*7*512)
+        fc1 = tf.reshape(fc1, (-1, 7, 7, 512))
+        fc1 = tf.maximum(alpha*fc1, fc1)
+        
+        # Starting Conv Transpose Stack
+        deconv2 = tf.layers.conv2d_transpose(fc1, 256, 3, 1, 'SAME')
+        batch_norm2 = tf.layers.batch_normalization(deconv2, training=is_train)
+        lrelu2 = tf.maximum(alpha * batch_norm2, batch_norm2)
+        
+        deconv3 = tf.layers.conv2d_transpose(lrelu2, 128, 3, 1, 'SAME')
+        batch_norm3 = tf.layers.batch_normalization(deconv3, training=is_train)
+        lrelu3 = tf.maximum(alpha * batch_norm3, batch_norm3)
+        
+        deconv4 = tf.layers.conv2d_transpose(lrelu3, 64, 3, 2, 'SAME')
+        batch_norm4 = tf.layers.batch_normalization(deconv4, training=is_train)
+        lrelu4 = tf.maximum(alpha * batch_norm4, batch_norm4)
+        
+        # Logits
+        logits = tf.layers.conv2d_transpose(lrelu4, out_channel_dim, 3, 2, 'SAME')
+        
+        # Output
+        out = tf.tanh(logits)
+        
+        return out
+
 
 
 """
@@ -287,6 +272,9 @@ DON'T MODIFY ANYTHING IN THIS CELL THAT IS BELOW THIS LINE
 """
 tests.test_generator(generator, tf)
 ```
+
+    Tests Passed
+
 
 ### Loss
 Implement `model_loss` to build the GANs for training and calculate the loss.  The function should return a tuple of (discriminator loss, generator loss).  Use the following functions you implemented:
@@ -303,9 +291,25 @@ def model_loss(input_real, input_z, out_channel_dim):
     :param out_channel_dim: The number of channels in the output image
     :return: A tuple of (discriminator loss, generator loss)
     """
-    # TODO: Implement Function
+    g_model = generator(input_z, out_channel_dim)
+    d_model_real, d_logits_real = discriminator(input_real)
+    d_model_fake, d_logits_fake = discriminator(g_model, reuse=True)
     
-    return None, None
+    d_loss_real = tf.reduce_mean(
+        tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_real, labels=tf.ones_like(d_model_real) * 0.9)
+    )
+    d_loss_fake = tf.reduce_mean(
+        tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake, labels=tf.zeros_like(d_model_fake))
+    )
+    d_loss = d_loss_real + d_loss_fake
+
+    g_loss = tf.reduce_mean(
+        tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake, labels=tf.ones_like(d_model_fake))
+    )
+    
+    return d_loss, g_loss
+
+
 
 
 """
@@ -313,6 +317,9 @@ DON'T MODIFY ANYTHING IN THIS CELL THAT IS BELOW THIS LINE
 """
 tests.test_model_loss(model_loss)
 ```
+
+    Tests Passed
+
 
 ### Optimization
 Implement `model_opt` to create the optimization operations for the GANs. Use [`tf.trainable_variables`](https://www.tensorflow.org/api_docs/python/tf/trainable_variables) to get all the trainable variables.  Filter the variables with names that are in the discriminator and generator scope names.  The function should return a tuple of (discriminator training operation, generator training operation).
@@ -328,16 +335,24 @@ def model_opt(d_loss, g_loss, learning_rate, beta1):
     :param beta1: The exponential decay rate for the 1st moment in the optimizer
     :return: A tuple of (discriminator training operation, generator training operation)
     """
-    # TODO: Implement Function
-    
-    return None, None
+    t_vars = tf.trainable_variables()
+    d_vars = [var for var in t_vars if var.name.startswith('discriminator')]
+    g_vars = [var for var in t_vars if var.name.startswith('generator')]
 
+    # Optimize
+    d_train_opt = tf.train.AdamOptimizer(learning_rate, beta1=beta1).minimize(d_loss, var_list=d_vars)
+    g_train_opt = tf.train.AdamOptimizer(learning_rate, beta1=beta1).minimize(g_loss, var_list=g_vars)
+
+    return d_train_opt, g_train_opt
 
 """
 DON'T MODIFY ANYTHING IN THIS CELL THAT IS BELOW THIS LINE
 """
 tests.test_model_opt(model_opt, tf)
 ```
+
+    Tests Passed
+
 
 ## Neural Network Training
 ### Show Output
@@ -394,14 +409,36 @@ def train(epoch_count, batch_size, z_dim, learning_rate, beta1, get_batches, dat
     :param data_shape: Shape of the data
     :param data_image_mode: The image mode to use for images ("RGB" or "L")
     """
-    # TODO: Build Model
+    tf.reset_default_graph()
+    input_real, input_z, _ = model_inputs(data_shape[1], data_shape[2], data_shape[3], z_dim)
+    d_loss, g_loss = model_loss(input_real, input_z, data_shape[3])
+    d_opt, g_opt = model_opt(d_loss, g_loss, learning_rate, beta1)
     
+    steps = 0
     
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         for epoch_i in range(epoch_count):
             for batch_images in get_batches(batch_size):
-                # TODO: Train Model
+                batch_images = batch_images * 2
+                steps += 1
+            
+                batch_z = np.random.uniform(-1, 1, size=(batch_size, z_dim))
+                
+                _ = sess.run(d_opt, feed_dict={input_real: batch_images, input_z: batch_z})
+                _ = sess.run(g_opt, feed_dict={input_z: batch_z})
+                
+                if steps % 100 == 0:
+                    # At the end of every 10 epochs, get the losses and print them out
+                    train_loss_d = d_loss.eval({input_z: batch_z, input_real: batch_images})
+                    train_loss_g = g_loss.eval({input_z: batch_z})
+
+                    print("Epoch {}/{}...".format(epoch_i+1, epochs),
+                          "Discriminator Loss: {:.4f}...".format(train_loss_d),
+                          "Generator Loss: {:.4f}".format(train_loss_g))
+                    
+                    _ = show_generator_output(sess, 1, input_z, data_shape[3], data_image_mode)
+
                 
                 
 ```
@@ -411,10 +448,10 @@ Test your GANs architecture on MNIST.  After 2 epochs, the GANs should be able t
 
 
 ```python
-batch_size = None
-z_dim = None
-learning_rate = None
-beta1 = None
+batch_size = 10
+z_dim = 100
+learning_rate = 0.001
+beta1 = 0.5
 
 
 """
@@ -428,15 +465,121 @@ with tf.Graph().as_default():
           mnist_dataset.shape, mnist_dataset.image_mode)
 ```
 
+    Epoch 1/2... Discriminator Loss: 5.8692... Generator Loss: 0.0731
+
+
+
+![png](dlnd_face_generation_files/dlnd_face_generation_23_1.png)
+
+
+    Epoch 1/2... Discriminator Loss: 1.9537... Generator Loss: 0.3586
+
+
+
+![png](dlnd_face_generation_files/dlnd_face_generation_23_3.png)
+
+
+    Epoch 1/2... Discriminator Loss: 1.6963... Generator Loss: 0.3858
+
+
+
+![png](dlnd_face_generation_files/dlnd_face_generation_23_5.png)
+
+
+
+    ---------------------------------------------------------------------------
+
+    KeyboardInterrupt                         Traceback (most recent call last)
+
+    /Users/ewann/miniconda3/envs/dl/lib/python3.6/site-packages/tensorflow/python/framework/ops.py in get_controller(self, default)
+       3680       self.stack.append(default)
+    -> 3681       yield default
+       3682     finally:
+
+
+    <ipython-input-110-7734a7f2e491> in <module>()
+         14     train(epochs, batch_size, z_dim, learning_rate, beta1, mnist_dataset.get_batches,
+    ---> 15           mnist_dataset.shape, mnist_dataset.image_mode)
+    
+
+    <ipython-input-109-d3a700d900ce> in train(epoch_count, batch_size, z_dim, learning_rate, beta1, get_batches, data_shape, data_image_mode)
+         28 
+    ---> 29                 _ = sess.run(d_opt, feed_dict={input_real: batch_images, input_z: batch_z})
+         30                 _ = sess.run(g_opt, feed_dict={input_z: batch_z})
+
+
+    /Users/ewann/miniconda3/envs/dl/lib/python3.6/site-packages/tensorflow/python/client/session.py in run(self, fetches, feed_dict, options, run_metadata)
+        766       result = self._run(None, fetches, feed_dict, options_ptr,
+    --> 767                          run_metadata_ptr)
+        768       if run_metadata:
+
+
+    /Users/ewann/miniconda3/envs/dl/lib/python3.6/site-packages/tensorflow/python/client/session.py in _run(self, handle, fetches, feed_dict, options, run_metadata)
+        964       results = self._do_run(handle, final_targets, final_fetches,
+    --> 965                              feed_dict_string, options, run_metadata)
+        966     else:
+
+
+    /Users/ewann/miniconda3/envs/dl/lib/python3.6/site-packages/tensorflow/python/client/session.py in _do_run(self, handle, target_list, fetch_list, feed_dict, options, run_metadata)
+       1014       return self._do_call(_run_fn, self._session, feed_dict, fetch_list,
+    -> 1015                            target_list, options, run_metadata)
+       1016     else:
+
+
+    /Users/ewann/miniconda3/envs/dl/lib/python3.6/site-packages/tensorflow/python/client/session.py in _do_call(self, fn, *args)
+       1021     try:
+    -> 1022       return fn(*args)
+       1023     except errors.OpError as e:
+
+
+    /Users/ewann/miniconda3/envs/dl/lib/python3.6/site-packages/tensorflow/python/client/session.py in _run_fn(session, feed_dict, fetch_list, target_list, options, run_metadata)
+       1003                                  feed_dict, fetch_list, target_list,
+    -> 1004                                  status, run_metadata)
+       1005 
+
+
+    KeyboardInterrupt: 
+
+    
+    During handling of the above exception, another exception occurred:
+
+
+    IndexError                                Traceback (most recent call last)
+
+    <ipython-input-110-7734a7f2e491> in <module>()
+         13 with tf.Graph().as_default():
+         14     train(epochs, batch_size, z_dim, learning_rate, beta1, mnist_dataset.get_batches,
+    ---> 15           mnist_dataset.shape, mnist_dataset.image_mode)
+    
+
+    /Users/ewann/miniconda3/envs/dl/lib/python3.6/contextlib.py in __exit__(self, type, value, traceback)
+         98                 value = type()
+         99             try:
+    --> 100                 self.gen.throw(type, value, traceback)
+        101                 raise RuntimeError("generator didn't stop after throw()")
+        102             except StopIteration as exc:
+
+
+    /Users/ewann/miniconda3/envs/dl/lib/python3.6/site-packages/tensorflow/python/framework/ops.py in get_controller(self, default)
+       3682     finally:
+       3683       if self._enforce_nesting:
+    -> 3684         if self.stack[-1] is not default:
+       3685           raise AssertionError(
+       3686               "Nesting violated for default stack of %s objects"
+
+
+    IndexError: list index out of range
+
+
 ### CelebA
 Run your GANs on CelebA.  It will take around 20 minutes on the average GPU to run one epoch.  You can run the whole epoch or stop when it starts to generate realistic faces.
 
 
 ```python
-batch_size = None
-z_dim = None
-learning_rate = None
-beta1 = None
+batch_size = 64
+z_dim = 100
+learning_rate = 0.001
+beta1 = 0.5
 
 
 """
