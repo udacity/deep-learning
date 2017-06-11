@@ -54,7 +54,7 @@ pyplot.imshow(helper.images_square_grid(mnist_images, 'L'), cmap='gray')
 
 
 
-    <matplotlib.image.AxesImage at 0x7fa913657d30>
+    <matplotlib.image.AxesImage at 0x7f701f31fcf8>
 
 
 
@@ -79,7 +79,7 @@ pyplot.imshow(helper.images_square_grid(mnist_images, 'RGB'))
 
 
 
-    <matplotlib.image.AxesImage at 0x7fa91354ee10>
+    <matplotlib.image.AxesImage at 0x7f701f216da0>
 
 
 
@@ -178,6 +178,7 @@ def discriminator(images, reuse=False):
     :return: Tuple of (tensor output of the discriminator, tensor logits of the discriminator)
     """
     alpha = 0.2
+    keep_prob=0.8
     
     with tf.variable_scope('discriminator', reuse=reuse):
         # using 4 layer network as in DCGAN Paper
@@ -190,19 +191,19 @@ def discriminator(images, reuse=False):
         conv2 = tf.layers.conv2d(lrelu1, 128, 5, 2, 'SAME', kernel_initializer=tf.contrib.layers.xavier_initializer())
         batch_norm2 = tf.layers.batch_normalization(conv2, training=True)
         lrelu2 = tf.maximum(alpha * batch_norm2, batch_norm2)
-        drop2 = tf.nn.dropout(lrelu2, keep_prob=0.5)        
+        drop2 = tf.nn.dropout(lrelu2, keep_prob=keep_prob)        
         
         # Conv 3
         conv3 = tf.layers.conv2d(drop2, 256, 5, 1, 'SAME', kernel_initializer=tf.contrib.layers.xavier_initializer())
         batch_norm3 = tf.layers.batch_normalization(conv3, training=True)
         lrelu3 = tf.maximum(alpha * batch_norm3, batch_norm3)
-        drop3 = tf.nn.dropout(lrelu3, keep_prob=0.5)        
+        drop3 = tf.nn.dropout(lrelu3, keep_prob=keep_prob)        
         
         # Conv 4
         conv4 = tf.layers.conv2d(drop3, 512, 5, 1, 'SAME', kernel_initializer=tf.contrib.layers.xavier_initializer())
         batch_norm4 = tf.layers.batch_normalization(conv4, training=True)
         lrelu4 = tf.maximum(alpha * batch_norm4, batch_norm4)
-        drop4 = tf.nn.dropout(lrelu4, keep_prob=0.5)
+        drop4 = tf.nn.dropout(lrelu4, keep_prob=keep_prob)
        
         # Flatten
         flat = tf.reshape(drop4, (-1, 7*7*512))
@@ -238,6 +239,7 @@ def generator(z, out_channel_dim, is_train=True):
     :return: The tensor output of the generator
     """
     alpha = 0.2
+    keep_prob=0.8
     
     with tf.variable_scope('generator', reuse=False if is_train==True else True):
         # Fully connected
@@ -249,17 +251,17 @@ def generator(z, out_channel_dim, is_train=True):
         deconv2 = tf.layers.conv2d_transpose(fc1, 256, 3, 1, 'SAME', kernel_initializer=tf.contrib.layers.xavier_initializer())
         batch_norm2 = tf.layers.batch_normalization(deconv2, training=is_train)
         lrelu2 = tf.maximum(alpha * batch_norm2, batch_norm2)
-        drop2 = tf.nn.dropout(lrelu2, keep_prob=0.5)
+        drop2 = tf.nn.dropout(lrelu2, keep_prob=keep_prob)
         
         deconv3 = tf.layers.conv2d_transpose(drop2, 128, 3, 1, 'SAME', kernel_initializer=tf.contrib.layers.xavier_initializer())
         batch_norm3 = tf.layers.batch_normalization(deconv3, training=is_train)
         lrelu3 = tf.maximum(alpha * batch_norm3, batch_norm3)
-        drop3 = tf.nn.dropout(lrelu3, keep_prob=0.5)
+        drop3 = tf.nn.dropout(lrelu3, keep_prob=keep_prob)
         
         deconv4 = tf.layers.conv2d_transpose(drop3, 64, 3, 2, 'SAME', kernel_initializer=tf.contrib.layers.xavier_initializer())
         batch_norm4 = tf.layers.batch_normalization(deconv4, training=is_train)
         lrelu4 = tf.maximum(alpha * batch_norm4, batch_norm4)
-        drop4 = tf.nn.dropout(lrelu4, keep_prob=0.5)
+        drop4 = tf.nn.dropout(lrelu4, keep_prob=keep_prob)
         
         # Logits
         logits = tf.layers.conv2d_transpose(drop4, out_channel_dim, 3, 2, 'SAME', kernel_initializer=tf.contrib.layers.xavier_initializer())
@@ -470,844 +472,263 @@ with tf.Graph().as_default():
           mnist_dataset.shape, mnist_dataset.image_mode)
 ```
 
-    Epoch 1/2... Discriminator Loss: 2.2619... Generator Loss: 0.6202
+    Epoch 1/2... Discriminator Loss: 0.6207... Generator Loss: 3.7921
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_1.png)
 
 
-    Epoch 1/2... Discriminator Loss: 1.4664... Generator Loss: 1.0111
+    Epoch 1/2... Discriminator Loss: 0.8270... Generator Loss: 2.7571
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_3.png)
 
 
-    Epoch 1/2... Discriminator Loss: 1.8397... Generator Loss: 2.6817
+    Epoch 1/2... Discriminator Loss: 0.6418... Generator Loss: 3.0800
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_5.png)
 
 
-    Epoch 1/2... Discriminator Loss: 2.8058... Generator Loss: 0.1577
+    Epoch 1/2... Discriminator Loss: 0.5540... Generator Loss: 3.7275
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_7.png)
 
 
-    Epoch 1/2... Discriminator Loss: 2.5614... Generator Loss: 0.1357
+    Epoch 1/2... Discriminator Loss: 0.6453... Generator Loss: 3.7712
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_9.png)
 
 
-    Epoch 1/2... Discriminator Loss: 1.1280... Generator Loss: 2.5137
+    Epoch 1/2... Discriminator Loss: 0.8287... Generator Loss: 4.4589
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_11.png)
 
 
-    Epoch 1/2... Discriminator Loss: 2.5035... Generator Loss: 0.1815
+    Epoch 1/2... Discriminator Loss: 0.6926... Generator Loss: 3.2371
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_13.png)
 
 
-    Epoch 1/2... Discriminator Loss: 2.3468... Generator Loss: 0.1857
+    Epoch 1/2... Discriminator Loss: 0.6050... Generator Loss: 2.0351
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_15.png)
 
 
-    Epoch 1/2... Discriminator Loss: 0.8233... Generator Loss: 1.8711
+    Epoch 1/2... Discriminator Loss: 0.6579... Generator Loss: 2.0835
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_17.png)
 
 
-    Epoch 1/2... Discriminator Loss: 3.1373... Generator Loss: 0.1207
+    Epoch 1/2... Discriminator Loss: 1.0076... Generator Loss: 1.2317
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_19.png)
 
 
-    Epoch 1/2... Discriminator Loss: 1.4474... Generator Loss: 2.4362
+    Epoch 1/2... Discriminator Loss: 0.7077... Generator Loss: 1.2998
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_21.png)
 
 
-    Epoch 1/2... Discriminator Loss: 2.7549... Generator Loss: 0.1637
+    Epoch 1/2... Discriminator Loss: 0.6377... Generator Loss: 1.8225
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_23.png)
 
 
-    Epoch 1/2... Discriminator Loss: 1.3976... Generator Loss: 0.7433
+    Epoch 1/2... Discriminator Loss: 0.5022... Generator Loss: 2.4247
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_25.png)
 
 
-    Epoch 1/2... Discriminator Loss: 3.7434... Generator Loss: 0.0523
+    Epoch 1/2... Discriminator Loss: 0.5107... Generator Loss: 3.1002
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_27.png)
 
 
-    Epoch 1/2... Discriminator Loss: 1.2509... Generator Loss: 0.8387
+    Epoch 1/2... Discriminator Loss: 0.4789... Generator Loss: 2.5714
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_29.png)
 
 
-    Epoch 1/2... Discriminator Loss: 1.5232... Generator Loss: 0.7338
+    Epoch 1/2... Discriminator Loss: 0.6920... Generator Loss: 1.8690
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_31.png)
 
 
-    Epoch 1/2... Discriminator Loss: 0.7061... Generator Loss: 1.4835
+    Epoch 1/2... Discriminator Loss: 0.5667... Generator Loss: 1.7015
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_33.png)
 
 
-    Epoch 1/2... Discriminator Loss: 1.2265... Generator Loss: 0.7313
+    Epoch 1/2... Discriminator Loss: 0.9607... Generator Loss: 1.3364
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_35.png)
 
 
-    Epoch 1/2... Discriminator Loss: 0.7040... Generator Loss: 2.0532
+    Epoch 2/2... Discriminator Loss: 0.6069... Generator Loss: 4.3278
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_37.png)
 
 
-    Epoch 1/2... Discriminator Loss: 2.0675... Generator Loss: 0.3187
+    Epoch 2/2... Discriminator Loss: 1.0425... Generator Loss: 1.3687
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_39.png)
 
 
-    Epoch 1/2... Discriminator Loss: 1.1110... Generator Loss: 1.8096
+    Epoch 2/2... Discriminator Loss: 1.2833... Generator Loss: 0.8524
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_41.png)
 
 
-    Epoch 1/2... Discriminator Loss: 1.1479... Generator Loss: 0.9486
+    Epoch 2/2... Discriminator Loss: 1.0916... Generator Loss: 1.8465
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_43.png)
 
 
-    Epoch 1/2... Discriminator Loss: 0.5944... Generator Loss: 2.2339
+    Epoch 2/2... Discriminator Loss: 0.6226... Generator Loss: 1.4239
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_45.png)
 
 
-    Epoch 1/2... Discriminator Loss: 0.9548... Generator Loss: 1.2912
+    Epoch 2/2... Discriminator Loss: 0.5672... Generator Loss: 1.9226
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_47.png)
 
 
-    Epoch 1/2... Discriminator Loss: 1.7245... Generator Loss: 0.4146
+    Epoch 2/2... Discriminator Loss: 0.4429... Generator Loss: 3.6183
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_49.png)
 
 
-    Epoch 1/2... Discriminator Loss: 0.6424... Generator Loss: 2.4182
+    Epoch 2/2... Discriminator Loss: 1.1351... Generator Loss: 4.3563
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_51.png)
 
 
-    Epoch 1/2... Discriminator Loss: 1.6380... Generator Loss: 0.5339
+    Epoch 2/2... Discriminator Loss: 1.9057... Generator Loss: 4.6996
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_53.png)
 
 
-    Epoch 1/2... Discriminator Loss: 0.5883... Generator Loss: 1.6673
+    Epoch 2/2... Discriminator Loss: 0.5609... Generator Loss: 3.5901
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_55.png)
 
 
-    Epoch 1/2... Discriminator Loss: 0.9067... Generator Loss: 1.8976
+    Epoch 2/2... Discriminator Loss: 0.5036... Generator Loss: 3.2922
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_57.png)
 
 
-    Epoch 1/2... Discriminator Loss: 2.1298... Generator Loss: 0.2611
+    Epoch 2/2... Discriminator Loss: 0.5417... Generator Loss: 3.7844
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_59.png)
 
 
-    Epoch 1/2... Discriminator Loss: 1.9435... Generator Loss: 0.4812
+    Epoch 2/2... Discriminator Loss: 0.6844... Generator Loss: 1.8136
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_61.png)
 
 
-    Epoch 1/2... Discriminator Loss: 0.9500... Generator Loss: 0.9799
+    Epoch 2/2... Discriminator Loss: 0.4357... Generator Loss: 4.9248
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_63.png)
 
 
-    Epoch 1/2... Discriminator Loss: 0.6482... Generator Loss: 1.6101
+    Epoch 2/2... Discriminator Loss: 6.6555... Generator Loss: 10.5240
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_65.png)
 
 
-    Epoch 1/2... Discriminator Loss: 0.7970... Generator Loss: 1.4174
+    Epoch 2/2... Discriminator Loss: 1.1529... Generator Loss: 1.1323
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_67.png)
 
 
-    Epoch 1/2... Discriminator Loss: 0.9533... Generator Loss: 2.1404
+    Epoch 2/2... Discriminator Loss: 0.4544... Generator Loss: 3.8707
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_69.png)
 
 
-    Epoch 1/2... Discriminator Loss: 1.0686... Generator Loss: 0.9664
+    Epoch 2/2... Discriminator Loss: 0.4682... Generator Loss: 2.4833
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_71.png)
 
 
-    Epoch 1/2... Discriminator Loss: 1.1878... Generator Loss: 0.8873
+    Epoch 2/2... Discriminator Loss: 4.1729... Generator Loss: 0.0491
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_23_73.png)
-
-
-    Epoch 1/2... Discriminator Loss: 1.4163... Generator Loss: 0.5699
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_75.png)
-
-
-    Epoch 1/2... Discriminator Loss: 0.6724... Generator Loss: 1.6672
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_77.png)
-
-
-    Epoch 1/2... Discriminator Loss: 1.7985... Generator Loss: 0.4420
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_79.png)
-
-
-    Epoch 1/2... Discriminator Loss: 1.1635... Generator Loss: 0.8786
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_81.png)
-
-
-    Epoch 1/2... Discriminator Loss: 0.9925... Generator Loss: 1.4314
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_83.png)
-
-
-    Epoch 1/2... Discriminator Loss: 1.0148... Generator Loss: 1.9695
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_85.png)
-
-
-    Epoch 1/2... Discriminator Loss: 0.8669... Generator Loss: 1.3644
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_87.png)
-
-
-    Epoch 1/2... Discriminator Loss: 1.6663... Generator Loss: 0.4707
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_89.png)
-
-
-    Epoch 1/2... Discriminator Loss: 1.4116... Generator Loss: 0.5953
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_91.png)
-
-
-    Epoch 1/2... Discriminator Loss: 0.9415... Generator Loss: 1.1345
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_93.png)
-
-
-    Epoch 1/2... Discriminator Loss: 1.7062... Generator Loss: 0.3555
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_95.png)
-
-
-    Epoch 1/2... Discriminator Loss: 0.6146... Generator Loss: 2.0326
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_97.png)
-
-
-    Epoch 1/2... Discriminator Loss: 1.5595... Generator Loss: 0.6007
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_99.png)
-
-
-    Epoch 1/2... Discriminator Loss: 1.0279... Generator Loss: 0.8501
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_101.png)
-
-
-    Epoch 1/2... Discriminator Loss: 2.6635... Generator Loss: 0.1264
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_103.png)
-
-
-    Epoch 1/2... Discriminator Loss: 2.0149... Generator Loss: 0.3093
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_105.png)
-
-
-    Epoch 1/2... Discriminator Loss: 0.5226... Generator Loss: 3.0728
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_107.png)
-
-
-    Epoch 1/2... Discriminator Loss: 1.1839... Generator Loss: 1.0181
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_109.png)
-
-
-    Epoch 1/2... Discriminator Loss: 1.3848... Generator Loss: 0.6558
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_111.png)
-
-
-    Epoch 1/2... Discriminator Loss: 2.8023... Generator Loss: 4.1509
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_113.png)
-
-
-    Epoch 1/2... Discriminator Loss: 0.6699... Generator Loss: 2.4823
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_115.png)
-
-
-    Epoch 1/2... Discriminator Loss: 1.2144... Generator Loss: 1.0774
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_117.png)
-
-
-    Epoch 1/2... Discriminator Loss: 0.6696... Generator Loss: 1.5526
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_119.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.9967... Generator Loss: 0.9785
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_121.png)
-
-
-    Epoch 2/2... Discriminator Loss: 1.1415... Generator Loss: 0.9937
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_123.png)
-
-
-    Epoch 2/2... Discriminator Loss: 2.6582... Generator Loss: 0.3289
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_125.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.8261... Generator Loss: 1.0906
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_127.png)
-
-
-    Epoch 2/2... Discriminator Loss: 1.2622... Generator Loss: 1.0366
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_129.png)
-
-
-    Epoch 2/2... Discriminator Loss: 1.0750... Generator Loss: 0.9029
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_131.png)
-
-
-    Epoch 2/2... Discriminator Loss: 1.3828... Generator Loss: 0.5317
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_133.png)
-
-
-    Epoch 2/2... Discriminator Loss: 1.0293... Generator Loss: 1.0517
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_135.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.9707... Generator Loss: 1.0313
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_137.png)
-
-
-    Epoch 2/2... Discriminator Loss: 1.0228... Generator Loss: 1.1384
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_139.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.6503... Generator Loss: 1.6707
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_141.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.5282... Generator Loss: 2.3339
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_143.png)
-
-
-    Epoch 2/2... Discriminator Loss: 1.3892... Generator Loss: 0.5346
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_145.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.9588... Generator Loss: 1.4284
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_147.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.7025... Generator Loss: 1.6237
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_149.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.5298... Generator Loss: 2.3509
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_151.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.8266... Generator Loss: 1.6712
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_153.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.7191... Generator Loss: 1.4390
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_155.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.6141... Generator Loss: 1.6631
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_157.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.9813... Generator Loss: 1.0941
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_159.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.4799... Generator Loss: 3.0742
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_161.png)
-
-
-    Epoch 2/2... Discriminator Loss: 1.2080... Generator Loss: 0.8269
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_163.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.9692... Generator Loss: 0.9870
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_165.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.6068... Generator Loss: 1.9257
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_167.png)
-
-
-    Epoch 2/2... Discriminator Loss: 1.0769... Generator Loss: 0.9509
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_169.png)
-
-
-    Epoch 2/2... Discriminator Loss: 2.3437... Generator Loss: 0.2293
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_171.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.9102... Generator Loss: 1.2042
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_173.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.6833... Generator Loss: 1.3908
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_175.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.6520... Generator Loss: 1.6765
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_177.png)
-
-
-    Epoch 2/2... Discriminator Loss: 1.1966... Generator Loss: 0.6901
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_179.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.7102... Generator Loss: 1.4153
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_181.png)
-
-
-    Epoch 2/2... Discriminator Loss: 1.3576... Generator Loss: 0.6304
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_183.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.6110... Generator Loss: 1.9147
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_185.png)
-
-
-    Epoch 2/2... Discriminator Loss: 1.1161... Generator Loss: 0.8729
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_187.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.6793... Generator Loss: 1.4487
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_189.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.6738... Generator Loss: 1.6718
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_191.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.9162... Generator Loss: 0.9070
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_193.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.6361... Generator Loss: 1.9108
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_195.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.5519... Generator Loss: 2.0668
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_197.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.6307... Generator Loss: 1.8360
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_199.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.6643... Generator Loss: 1.7487
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_201.png)
-
-
-    Epoch 2/2... Discriminator Loss: 2.2935... Generator Loss: 0.2092
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_203.png)
-
-
-    Epoch 2/2... Discriminator Loss: 1.9879... Generator Loss: 0.2661
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_205.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.6725... Generator Loss: 1.4516
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_207.png)
-
-
-    Epoch 2/2... Discriminator Loss: 1.9201... Generator Loss: 0.3181
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_209.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.9473... Generator Loss: 1.0200
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_211.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.7540... Generator Loss: 1.2531
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_213.png)
-
-
-    Epoch 2/2... Discriminator Loss: 1.3744... Generator Loss: 0.5950
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_215.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.7612... Generator Loss: 1.3399
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_217.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.7148... Generator Loss: 1.3688
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_219.png)
-
-
-    Epoch 2/2... Discriminator Loss: 1.4309... Generator Loss: 0.5351
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_221.png)
-
-
-    Epoch 2/2... Discriminator Loss: 2.3729... Generator Loss: 0.2233
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_223.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.5871... Generator Loss: 1.7392
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_225.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.8773... Generator Loss: 1.4090
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_227.png)
-
-
-    Epoch 2/2... Discriminator Loss: 0.6498... Generator Loss: 1.7226
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_229.png)
-
-
-    Epoch 2/2... Discriminator Loss: 1.0603... Generator Loss: 0.8353
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_231.png)
-
-
-    Epoch 2/2... Discriminator Loss: 1.4997... Generator Loss: 0.4198
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_233.png)
-
-
-    Epoch 2/2... Discriminator Loss: 1.4217... Generator Loss: 0.5694
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_235.png)
-
-
-    Epoch 2/2... Discriminator Loss: 1.1395... Generator Loss: 0.8307
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_237.png)
-
-
-    Epoch 2/2... Discriminator Loss: 1.0447... Generator Loss: 0.9657
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_23_239.png)
 
 
 
@@ -1315,7 +736,7 @@ with tf.Graph().as_default():
 
     IndexError                                Traceback (most recent call last)
 
-    <ipython-input-12-e0626622894d> in <module>()
+    <ipython-input-12-da667cda9180> in <module>()
          13 with tf.Graph().as_default():
          14     train(epochs, batch_size, z_dim, learning_rate, beta1, mnist_dataset.get_batches,
     ---> 15           mnist_dataset.shape, mnist_dataset.image_mode)
@@ -1362,240 +783,183 @@ with tf.Graph().as_default():
           celeba_dataset.shape, celeba_dataset.image_mode)
 ```
 
-    Epoch 1/1... Discriminator Loss: 1.1199... Generator Loss: 0.9393
+    Epoch 1/1... Discriminator Loss: 0.5616... Generator Loss: 3.1936
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_25_1.png)
 
 
-    Epoch 1/1... Discriminator Loss: 1.1366... Generator Loss: 1.1290
+    Epoch 1/1... Discriminator Loss: 0.5097... Generator Loss: 2.9980
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_25_3.png)
 
 
-    Epoch 1/1... Discriminator Loss: 1.1737... Generator Loss: 1.0269
+    Epoch 1/1... Discriminator Loss: 0.6918... Generator Loss: 2.4384
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_25_5.png)
 
 
-    Epoch 1/1... Discriminator Loss: 1.1446... Generator Loss: 0.8075
+    Epoch 1/1... Discriminator Loss: 0.5233... Generator Loss: 2.8285
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_25_7.png)
 
 
-    Epoch 1/1... Discriminator Loss: 1.3214... Generator Loss: 1.1399
+    Epoch 1/1... Discriminator Loss: 0.5620... Generator Loss: 3.1310
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_25_9.png)
 
 
-    Epoch 1/1... Discriminator Loss: 1.3272... Generator Loss: 0.7571
+    Epoch 1/1... Discriminator Loss: 0.7240... Generator Loss: 1.6750
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_25_11.png)
 
 
-    Epoch 1/1... Discriminator Loss: 1.2673... Generator Loss: 1.2967
+    Epoch 1/1... Discriminator Loss: 0.8543... Generator Loss: 3.7454
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_25_13.png)
 
 
-    Epoch 1/1... Discriminator Loss: 1.2217... Generator Loss: 1.0707
+    Epoch 1/1... Discriminator Loss: 0.7419... Generator Loss: 3.7049
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_25_15.png)
 
 
-    Epoch 1/1... Discriminator Loss: 1.2543... Generator Loss: 1.5583
+    Epoch 1/1... Discriminator Loss: 0.6585... Generator Loss: 3.1236
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_25_17.png)
 
 
-    Epoch 1/1... Discriminator Loss: 2.1798... Generator Loss: 0.2265
+    Epoch 1/1... Discriminator Loss: 0.6480... Generator Loss: 3.3297
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_25_19.png)
 
 
-    Epoch 1/1... Discriminator Loss: 1.1831... Generator Loss: 0.8747
+    Epoch 1/1... Discriminator Loss: 0.7804... Generator Loss: 1.6501
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_25_21.png)
 
 
-    Epoch 1/1... Discriminator Loss: 2.6119... Generator Loss: 0.1361
+    Epoch 1/1... Discriminator Loss: 0.8151... Generator Loss: 1.2425
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_25_23.png)
 
 
-    Epoch 1/1... Discriminator Loss: 1.2133... Generator Loss: 0.9319
+    Epoch 1/1... Discriminator Loss: 1.0538... Generator Loss: 0.9802
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_25_25.png)
 
 
-    Epoch 1/1... Discriminator Loss: 1.2162... Generator Loss: 1.1988
+    Epoch 1/1... Discriminator Loss: 0.7338... Generator Loss: 2.7519
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_25_27.png)
 
 
-    Epoch 1/1... Discriminator Loss: 1.1761... Generator Loss: 0.7007
+    Epoch 1/1... Discriminator Loss: 0.7953... Generator Loss: 1.7229
 
 
 
 ![png](dlnd_face_generation_files/dlnd_face_generation_25_29.png)
 
 
-    Epoch 1/1... Discriminator Loss: 1.2599... Generator Loss: 0.9386
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_25_31.png)
-
-
-    Epoch 1/1... Discriminator Loss: 1.2342... Generator Loss: 1.1477
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_25_33.png)
-
-
-    Epoch 1/1... Discriminator Loss: 1.3855... Generator Loss: 1.6220
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_25_35.png)
-
-
-    Epoch 1/1... Discriminator Loss: 1.3282... Generator Loss: 0.7581
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_25_37.png)
-
-
-    Epoch 1/1... Discriminator Loss: 1.5564... Generator Loss: 0.5030
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_25_39.png)
-
-
-    Epoch 1/1... Discriminator Loss: 1.4330... Generator Loss: 1.8041
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_25_41.png)
-
-
-    Epoch 1/1... Discriminator Loss: 1.2861... Generator Loss: 1.6193
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_25_43.png)
-
-
-    Epoch 1/1... Discriminator Loss: 1.4025... Generator Loss: 0.5971
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_25_45.png)
-
-
-    Epoch 1/1... Discriminator Loss: 1.1753... Generator Loss: 1.1494
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_25_47.png)
-
-
-    Epoch 1/1... Discriminator Loss: 1.3331... Generator Loss: 2.4242
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_25_49.png)
-
-
-    Epoch 1/1... Discriminator Loss: 1.1333... Generator Loss: 1.5083
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_25_51.png)
-
-
-    Epoch 1/1... Discriminator Loss: 1.3714... Generator Loss: 0.6381
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_25_53.png)
-
-
-    Epoch 1/1... Discriminator Loss: 1.2080... Generator Loss: 1.2453
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_25_55.png)
-
-
-    Epoch 1/1... Discriminator Loss: 1.0594... Generator Loss: 0.8993
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_25_57.png)
-
-
-    Epoch 1/1... Discriminator Loss: 1.2910... Generator Loss: 0.7798
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_25_59.png)
-
-
-    Epoch 1/1... Discriminator Loss: 1.0642... Generator Loss: 1.1383
-
-
-
-![png](dlnd_face_generation_files/dlnd_face_generation_25_61.png)
-
-
 
     ---------------------------------------------------------------------------
 
+    KeyboardInterrupt                         Traceback (most recent call last)
+
+    /usr/local/lib/python3.5/site-packages/tensorflow/python/framework/ops.py in get_controller(self, default)
+       3680       self.stack.append(default)
+    -> 3681       yield default
+       3682     finally:
+
+
+    <ipython-input-13-9e4afd78e3c4> in <module>()
+         14     train(epochs, batch_size, z_dim, learning_rate, beta1, celeba_dataset.get_batches,
+    ---> 15           celeba_dataset.shape, celeba_dataset.image_mode)
+    
+
+    <ipython-input-11-251887f2e609> in train(epoch_count, batch_size, z_dim, learning_rate, beta1, get_batches, data_shape, data_image_mode)
+         22         for epoch_i in range(epoch_count):
+    ---> 23             for batch_images in get_batches(batch_size):
+         24                 batch_images = batch_images * 2
+
+
+    /output/helper.py in get_batches(self, batch_size)
+        214                 *self.shape[1:3],
+    --> 215                 self.image_mode)
+        216 
+
+
+    /output/helper.py in get_batch(image_files, width, height, mode)
+         87     data_batch = np.array(
+    ---> 88         [get_image(sample_file, width, height, mode) for sample_file in image_files]).astype(np.float32)
+         89 
+
+
+    /output/helper.py in <listcomp>(.0)
+         87     data_batch = np.array(
+    ---> 88         [get_image(sample_file, width, height, mode) for sample_file in image_files]).astype(np.float32)
+         89 
+
+
+    /output/helper.py in get_image(image_path, width, height, mode)
+         72     """
+    ---> 73     image = Image.open(image_path)
+         74 
+
+
+    /usr/local/lib/python3.5/site-packages/PIL/Image.py in open(fp, mode)
+       2318 
+    -> 2319     prefix = fp.read(16)
+       2320 
+
+
+    KeyboardInterrupt: 
+
+    
+    During handling of the above exception, another exception occurred:
+
+
     IndexError                                Traceback (most recent call last)
 
-    <ipython-input-13-97293279c58c> in <module>()
+    <ipython-input-13-9e4afd78e3c4> in <module>()
          13 with tf.Graph().as_default():
          14     train(epochs, batch_size, z_dim, learning_rate, beta1, celeba_dataset.get_batches,
     ---> 15           celeba_dataset.shape, celeba_dataset.image_mode)
     
 
     /usr/local/lib/python3.5/contextlib.py in __exit__(self, type, value, traceback)
-         64         if type is None:
-         65             try:
-    ---> 66                 next(self.gen)
-         67             except StopIteration:
-         68                 return
+         75                 value = type()
+         76             try:
+    ---> 77                 self.gen.throw(type, value, traceback)
+         78                 raise RuntimeError("generator didn't stop after throw()")
+         79             except StopIteration as exc:
 
 
     /usr/local/lib/python3.5/site-packages/tensorflow/python/framework/ops.py in get_controller(self, default)

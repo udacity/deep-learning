@@ -141,6 +141,7 @@ def discriminator(images, reuse=False):
     :return: Tuple of (tensor output of the discriminator, tensor logits of the discriminator)
     """
     alpha = 0.2
+    keep_prob=0.8
     
     with tf.variable_scope('discriminator', reuse=reuse):
         # using 4 layer network as in DCGAN Paper
@@ -153,19 +154,19 @@ def discriminator(images, reuse=False):
         conv2 = tf.layers.conv2d(lrelu1, 128, 5, 2, 'SAME', kernel_initializer=tf.contrib.layers.xavier_initializer())
         batch_norm2 = tf.layers.batch_normalization(conv2, training=True)
         lrelu2 = tf.maximum(alpha * batch_norm2, batch_norm2)
-        drop2 = tf.nn.dropout(lrelu2, keep_prob=0.5)        
+        drop2 = tf.nn.dropout(lrelu2, keep_prob=keep_prob)        
         
         # Conv 3
         conv3 = tf.layers.conv2d(drop2, 256, 5, 1, 'SAME', kernel_initializer=tf.contrib.layers.xavier_initializer())
         batch_norm3 = tf.layers.batch_normalization(conv3, training=True)
         lrelu3 = tf.maximum(alpha * batch_norm3, batch_norm3)
-        drop3 = tf.nn.dropout(lrelu3, keep_prob=0.5)        
+        drop3 = tf.nn.dropout(lrelu3, keep_prob=keep_prob)        
         
         # Conv 4
         conv4 = tf.layers.conv2d(drop3, 512, 5, 1, 'SAME', kernel_initializer=tf.contrib.layers.xavier_initializer())
         batch_norm4 = tf.layers.batch_normalization(conv4, training=True)
         lrelu4 = tf.maximum(alpha * batch_norm4, batch_norm4)
-        drop4 = tf.nn.dropout(lrelu4, keep_prob=0.5)
+        drop4 = tf.nn.dropout(lrelu4, keep_prob=keep_prob)
        
         # Flatten
         flat = tf.reshape(drop4, (-1, 7*7*512))
@@ -197,6 +198,7 @@ def generator(z, out_channel_dim, is_train=True):
     :return: The tensor output of the generator
     """
     alpha = 0.2
+    keep_prob=0.8
     
     with tf.variable_scope('generator', reuse=False if is_train==True else True):
         # Fully connected
@@ -208,17 +210,17 @@ def generator(z, out_channel_dim, is_train=True):
         deconv2 = tf.layers.conv2d_transpose(fc1, 256, 3, 1, 'SAME', kernel_initializer=tf.contrib.layers.xavier_initializer())
         batch_norm2 = tf.layers.batch_normalization(deconv2, training=is_train)
         lrelu2 = tf.maximum(alpha * batch_norm2, batch_norm2)
-        drop2 = tf.nn.dropout(lrelu2, keep_prob=0.5)
+        drop2 = tf.nn.dropout(lrelu2, keep_prob=keep_prob)
         
         deconv3 = tf.layers.conv2d_transpose(drop2, 128, 3, 1, 'SAME', kernel_initializer=tf.contrib.layers.xavier_initializer())
         batch_norm3 = tf.layers.batch_normalization(deconv3, training=is_train)
         lrelu3 = tf.maximum(alpha * batch_norm3, batch_norm3)
-        drop3 = tf.nn.dropout(lrelu3, keep_prob=0.5)
+        drop3 = tf.nn.dropout(lrelu3, keep_prob=keep_prob)
         
         deconv4 = tf.layers.conv2d_transpose(drop3, 64, 3, 2, 'SAME', kernel_initializer=tf.contrib.layers.xavier_initializer())
         batch_norm4 = tf.layers.batch_normalization(deconv4, training=is_train)
         lrelu4 = tf.maximum(alpha * batch_norm4, batch_norm4)
-        drop4 = tf.nn.dropout(lrelu4, keep_prob=0.5)
+        drop4 = tf.nn.dropout(lrelu4, keep_prob=keep_prob)
         
         # Logits
         logits = tf.layers.conv2d_transpose(drop4, out_channel_dim, 3, 2, 'SAME', kernel_initializer=tf.contrib.layers.xavier_initializer())
