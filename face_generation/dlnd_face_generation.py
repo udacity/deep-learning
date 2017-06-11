@@ -16,7 +16,7 @@
 data_dir = './data'
 
 # FloydHub - Use with data ID "R5KrjnANiKVhLWAkpXhNBe"
-#data_dir = '/input'
+data_dir = '/input'
 
 
 """
@@ -146,26 +146,29 @@ def discriminator(images, reuse=False):
         # using 4 layer network as in DCGAN Paper
         
         # Conv 1
-        conv1 = tf.layers.conv2d(images, 64, 5, 2, 'SAME')
+        conv1 = tf.layers.conv2d(images, 64, 5, 2, 'SAME', kernel_initializer=tf.contrib.layers.xavier_initializer())
         lrelu1 = tf.maximum(alpha * conv1, conv1)
         
         # Conv 2
-        conv2 = tf.layers.conv2d(lrelu1, 128, 5, 2, 'SAME')
+        conv2 = tf.layers.conv2d(lrelu1, 128, 5, 2, 'SAME', kernel_initializer=tf.contrib.layers.xavier_initializer())
         batch_norm2 = tf.layers.batch_normalization(conv2, training=True)
         lrelu2 = tf.maximum(alpha * batch_norm2, batch_norm2)
+        drop2 = tf.nn.dropout(lrelu2, keep_prob=0.5)        
         
         # Conv 3
-        conv3 = tf.layers.conv2d(lrelu2, 256, 5, 1, 'SAME')
+        conv3 = tf.layers.conv2d(drop2, 256, 5, 1, 'SAME', kernel_initializer=tf.contrib.layers.xavier_initializer())
         batch_norm3 = tf.layers.batch_normalization(conv3, training=True)
         lrelu3 = tf.maximum(alpha * batch_norm3, batch_norm3)
+        drop3 = tf.nn.dropout(lrelu3, keep_prob=0.5)        
         
         # Conv 4
-        conv4 = tf.layers.conv2d(lrelu3, 512, 5, 1, 'SAME')
+        conv4 = tf.layers.conv2d(drop3, 512, 5, 1, 'SAME', kernel_initializer=tf.contrib.layers.xavier_initializer())
         batch_norm4 = tf.layers.batch_normalization(conv4, training=True)
         lrelu4 = tf.maximum(alpha * batch_norm4, batch_norm4)
+        drop4 = tf.nn.dropout(lrelu4, keep_prob=0.5)
        
         # Flatten
-        flat = tf.reshape(lrelu4, (-1, 7*7*512))
+        flat = tf.reshape(drop4, (-1, 7*7*512))
         
         # Logits
         logits = tf.layers.dense(flat, 1)
@@ -202,20 +205,23 @@ def generator(z, out_channel_dim, is_train=True):
         fc1 = tf.maximum(alpha*fc1, fc1)
         
         # Starting Conv Transpose Stack
-        deconv2 = tf.layers.conv2d_transpose(fc1, 256, 3, 1, 'SAME')
+        deconv2 = tf.layers.conv2d_transpose(fc1, 256, 3, 1, 'SAME', kernel_initializer=tf.contrib.layers.xavier_initializer())
         batch_norm2 = tf.layers.batch_normalization(deconv2, training=is_train)
         lrelu2 = tf.maximum(alpha * batch_norm2, batch_norm2)
+        drop2 = tf.nn.dropout(lrelu2, keep_prob=0.5)
         
-        deconv3 = tf.layers.conv2d_transpose(lrelu2, 128, 3, 1, 'SAME')
+        deconv3 = tf.layers.conv2d_transpose(drop2, 128, 3, 1, 'SAME', kernel_initializer=tf.contrib.layers.xavier_initializer())
         batch_norm3 = tf.layers.batch_normalization(deconv3, training=is_train)
         lrelu3 = tf.maximum(alpha * batch_norm3, batch_norm3)
+        drop3 = tf.nn.dropout(lrelu3, keep_prob=0.5)
         
-        deconv4 = tf.layers.conv2d_transpose(lrelu3, 64, 3, 2, 'SAME')
+        deconv4 = tf.layers.conv2d_transpose(drop3, 64, 3, 2, 'SAME', kernel_initializer=tf.contrib.layers.xavier_initializer())
         batch_norm4 = tf.layers.batch_normalization(deconv4, training=is_train)
         lrelu4 = tf.maximum(alpha * batch_norm4, batch_norm4)
+        drop4 = tf.nn.dropout(lrelu4, keep_prob=0.5)
         
         # Logits
-        logits = tf.layers.conv2d_transpose(lrelu4, out_channel_dim, 3, 2, 'SAME')
+        logits = tf.layers.conv2d_transpose(drop4, out_channel_dim, 3, 2, 'SAME', kernel_initializer=tf.contrib.layers.xavier_initializer())
         
         # Output
         out = tf.tanh(logits)
@@ -290,7 +296,9 @@ def model_opt(d_loss, g_loss, learning_rate, beta1):
 
     # Optimize
     d_train_opt = tf.train.AdamOptimizer(learning_rate, beta1=beta1).minimize(d_loss, var_list=d_vars)
-    g_train_opt = tf.train.AdamOptimizer(learning_rate, beta1=beta1).minimize(g_loss, var_list=g_vars)
+    
+    with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS, scope='generator')):
+        g_train_opt = tf.train.AdamOptimizer(learning_rate = learning_rate,beta1 = beta1).minimize(g_loss, var_list = g_vars)
 
     return d_train_opt, g_train_opt
 
@@ -373,7 +381,6 @@ def train(epoch_count, batch_size, z_dim, learning_rate, beta1, get_batches, dat
                 _ = sess.run(g_opt, feed_dict={input_z: batch_z})
                 
                 if steps % 100 == 0:
-                    # At the end of every 10 epochs, get the losses and print them out
                     train_loss_d = d_loss.eval({input_z: batch_z, input_real: batch_images})
                     train_loss_g = g_loss.eval({input_z: batch_z})
 
@@ -391,9 +398,9 @@ def train(epoch_count, batch_size, z_dim, learning_rate, beta1, get_batches, dat
 # Test your GANs architecture on MNIST.  After 2 epochs, the GANs should be able to generate images that look like handwritten digits.  Make sure the loss of the generator is lower than the loss of the discriminator or close to 0.
 
 
-batch_size = 10
+batch_size = 32
 z_dim = 100
-learning_rate = 0.001
+learning_rate = 0.0002
 beta1 = 0.5
 
 
@@ -414,7 +421,7 @@ with tf.Graph().as_default():
 
 batch_size = 64
 z_dim = 100
-learning_rate = 0.001
+learning_rate = 0.0002
 beta1 = 0.5
 
 
@@ -431,3 +438,11 @@ with tf.Graph().as_default():
 
 # ### Submitting This Project
 # When submitting this project, make sure to run all the cells before saving the notebook. Save the notebook file as "dlnd_face_generation.ipynb" and save it as a HTML file under "File" -> "Download as". Include the "helper.py" and "problem_unittests.py" files in your submission.
+
+
+print("Done")
+
+
+
+
+
