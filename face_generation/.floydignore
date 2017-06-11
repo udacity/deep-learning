@@ -1,0 +1,3 @@
+/data/*
+/__pycache__
+/dlnd_face_generation_files/*

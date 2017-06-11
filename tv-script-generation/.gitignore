@@ -1,0 +1,6 @@
+checkpoint
+.ipynb_checkpoints/
+params.p
+preprocess.p
+save.*
+__pycache__
