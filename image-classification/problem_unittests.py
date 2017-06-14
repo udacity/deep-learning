@@ -72,6 +72,15 @@ def test_one_hot_encode(one_hot_encode):
         '{}\n' \
         'Make sure you save the map of labels to encodings outside of the function.'.format(enc_labels, new_enc_labels)
 
+    for one_hot in new_enc_labels:
+        assert (one_hot==1).sum() == 1,\
+            'Each one-hot-encoded value should include the number 1 exactly once.\n' \
+            'Found {}\n'.format(one_hot)
+        assert (one_hot==0).sum() == len(one_hot)-1,\
+            'Each one-hot-encoded value should include zeros in all but one position.\n' \
+            'Found {}\n'.format(one_hot)
+
+
     _print_success_message()
 
 
