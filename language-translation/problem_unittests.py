@@ -1,5 +1,6 @@
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.layers.core import Dense
 import itertools
 import collections
 import helper
@@ -72,7 +73,7 @@ def test_text_to_ids(text_to_ids):
 
 def test_model_inputs(model_inputs):
     with tf.Graph().as_default():
-        input_data, targets, lr, keep_prob = model_inputs()
+        input_data, targets, lr, keep_prob, target_sequence_length, max_target_sequence_length, source_sequence_length = model_inputs()
 
         # Check type
         assert input_data.op.type == 'Placeholder',\
@@ -83,10 +84,20 @@ def test_model_inputs(model_inputs):
             'Learning Rate is not a Placeholder.'
         assert keep_prob.op.type == 'Placeholder', \
             'Keep Probability is not a Placeholder.'
+        assert target_sequence_length.op.type == 'Placeholder', \
+            'Target Sequence Length is not a Placeholder.'
+        assert max_target_sequence_length.op.type == 'Max', \
+            'Max Target Sequence Length is not a Placeholder.'
+        assert source_sequence_length.op.type == 'Placeholder', \
+            'Source Sequence Length is not a Placeholder.'
 
         # Check name
         assert input_data.name == 'input:0',\
             'Input has bad name.  Found name {}'.format(input_data.name)
+        assert target_sequence_length.name == 'target_sequence_length:0',\
+            'Target Sequence Length has bad name.  Found name {}'.format(target_sequence_length.name)
+        assert source_sequence_length.name == 'source_sequence_length:0',\
+            'Source Sequence Length has bad name.  Found name {}'.format(source_sequence_length.name)
         assert keep_prob.name == 'keep_prob:0', \
             'Keep Probability has bad name.  Found name {}'.format(keep_prob.name)
 
@@ -94,6 +105,9 @@ def test_model_inputs(model_inputs):
         assert tf.assert_rank(targets, 2, message='Targets has wrong rank')
         assert tf.assert_rank(lr, 0, message='Learning Rate has wrong rank')
         assert tf.assert_rank(keep_prob, 0, message='Keep Probability has wrong rank')
+        assert tf.assert_rank(target_sequence_length, 1, message='Target Sequence Length has wrong rank')
+        assert tf.assert_rank(max_target_sequence_length, 0, message='Max Target Sequence Length has wrong rank')
+        assert tf.assert_rank(source_sequence_length, 1, message='Source Sequence Lengthhas wrong rank')
 
     _print_success_message()
 
@@ -102,11 +116,22 @@ def test_encoding_layer(encoding_layer):
     rnn_size = 512
     batch_size = 64
     num_layers = 3
+    source_sequence_len = 22
+    source_vocab_size = 20
+    encoding_embedding_size = 30
 
     with tf.Graph().as_default():
-        rnn_inputs = tf.placeholder(tf.float32, [batch_size, 22, 1000])
+        rnn_inputs = tf.placeholder(tf.int32, [batch_size,
+                                                 source_sequence_len])
+        source_sequence_length = tf.placeholder(tf.int32,
+                                                (None,),
+                                                name='source_sequence_length')
         keep_prob = tf.placeholder(tf.float32)
-        states = encoding_layer(rnn_inputs, rnn_size, num_layers, keep_prob)
+
+        enc_output, states = encoding_layer(rnn_inputs, rnn_size, num_layers, keep_prob,
+                   source_sequence_length, source_vocab_size,
+                   encoding_embedding_size)
+
 
         assert len(states) == num_layers,\
             'Found {} state(s). It should be {} states.'.format(len(states), num_layers)
@@ -135,7 +160,13 @@ def test_decoding_layer(decoding_layer):
     target_vocab_to_int = {'<EOS>': 1, '<GO>': 3}
 
     with tf.Graph().as_default():
-        dec_embed_input = tf.placeholder(tf.float32, [batch_size, 22, embedding_size])
+
+
+        target_sequence_length_p = tf.placeholder(tf.int32, (None,), name='target_sequence_length')
+        max_target_sequence_length = tf.reduce_max(target_sequence_length_p, name='max_target_len')
+
+        dec_input = tf.placeholder(tf.int32, [batch_size, sequence_length])
+        dec_embed_input = tf.placeholder(tf.float32, [batch_size, sequence_length, embedding_size])
         dec_embeddings = tf.placeholder(tf.float32, [vocab_size, embedding_size])
         keep_prob = tf.placeholder(tf.float32)
         state = tf.contrib.rnn.LSTMStateTuple(
@@ -143,47 +174,88 @@ def test_decoding_layer(decoding_layer):
             tf.placeholder(tf.float32, [None, rnn_size]))
         encoder_state = (state, state, state)
 
-        train_output, inf_output = decoding_layer(dec_embed_input, dec_embeddings, encoder_state, vocab_size,
-                                                  sequence_length, rnn_size, num_layers, target_vocab_to_int, keep_prob)
+        train_decoder_output, infer_logits_output = decoding_layer( dec_input,
+                                                   encoder_state,
+                                                   target_sequence_length_p,
+                                                   max_target_sequence_length,
+                                                   rnn_size,
+                                                   num_layers,
+                                                   target_vocab_to_int,
+                                                   vocab_size,
+                                                   batch_size,
+                                                   keep_prob,
+                                                   embedding_size)
 
-        assert isinstance(train_output, tf.Tensor),\
-            'Train Logits is wrong type: {}'.format(type(train_output))
-        assert isinstance(inf_output, tf.Tensor), \
-            'Inference Logits is wrong type: {}'.format(type(inf_output))
 
-        assert train_output.get_shape().as_list() == [batch_size, None, vocab_size],\
-            'Train Logits is the wrong shape: {}'.format(train_output.get_shape())
-        assert inf_output.get_shape().as_list() == [None, None, vocab_size], \
-            'Inference Logits is the wrong shape: {}'.format(inf_output.get_shape())
+
+        assert isinstance(train_decoder_output, tf.contrib.seq2seq.BasicDecoderOutput),\
+            'Found wrong type: {}'.format(type(train_decoder_output))
+        assert isinstance(infer_logits_output, tf.contrib.seq2seq.BasicDecoderOutput),\
+            'Found wrong type: {}'.format(type(infer_logits_output))
+
+        assert train_decoder_output.rnn_output.get_shape().as_list() == [batch_size, None, vocab_size], \
+            'Wrong shape returned.  Found {}'.format(train_decoder_output.get_shape())
+        assert infer_logits_output.sample_id.get_shape().as_list() == [batch_size, None], \
+             'Wrong shape returned.  Found {}'.format(infer_logits_output.sample_id.get_shape())
+
+
 
     _print_success_message()
 
 
 def test_seq2seq_model(seq2seq_model):
     batch_size = 64
-    target_vocab_size = 300
+    vocab_size = 300
+    embedding_size = 100
     sequence_length = 22
     rnn_size = 512
     num_layers = 3
     target_vocab_to_int = {'<EOS>': 1, '<GO>': 3}
 
     with tf.Graph().as_default():
-        input_data = tf.placeholder(tf.int32, [64, 22])
-        target_data = tf.placeholder(tf.int32, [64, 22])
+
+        dec_input = tf.placeholder(tf.int32, [batch_size, sequence_length])
+        dec_embed_input = tf.placeholder(tf.float32, [batch_size, sequence_length, embedding_size])
+        dec_embeddings = tf.placeholder(tf.float32, [vocab_size, embedding_size])
         keep_prob = tf.placeholder(tf.float32)
-        train_output, inf_output = seq2seq_model(input_data, target_data, keep_prob, batch_size, sequence_length,
-                                                 200, target_vocab_size, 64, 80, rnn_size, num_layers, target_vocab_to_int)
+        enc_state = tf.contrib.rnn.LSTMStateTuple(
+            tf.placeholder(tf.float32, [None, rnn_size]),
+            tf.placeholder(tf.float32, [None, rnn_size]))
 
-        assert isinstance(train_output, tf.Tensor),\
-            'Train Logits is wrong type: {}'.format(type(train_output))
-        assert isinstance(inf_output, tf.Tensor), \
-            'Inference Logits is wrong type: {}'.format(type(inf_output))
+        input_data = tf.placeholder(tf.int32, [batch_size, sequence_length])
+        target_data = tf.placeholder(tf.int32, [batch_size, sequence_length])
+        keep_prob = tf.placeholder(tf.float32)
+        source_sequence_length = tf.placeholder(tf.int32, (None,), name='source_sequence_length')
+        target_sequence_length_p = tf.placeholder(tf.int32, (None,), name='target_sequence_length')
+        max_target_sequence_length = tf.reduce_max(target_sequence_length_p, name='max_target_len')
 
-        assert train_output.get_shape().as_list() == [batch_size, None, target_vocab_size],\
-            'Train Logits is the wrong shape: {}'.format(train_output.get_shape())
-        assert inf_output.get_shape().as_list() == [None, None, target_vocab_size], \
-            'Inference Logits is the wrong shape: {}'.format(inf_output.get_shape())
+        train_decoder_output, infer_logits_output = seq2seq_model(  input_data,
+                                                   target_data,
+                                                   keep_prob,
+                                                   batch_size,
+                                                   source_sequence_length,
+                                                   target_sequence_length_p,
+                                                   max_target_sequence_length,
+                                                   vocab_size,
+                                                   vocab_size,
+                                                   embedding_size,
+                                                   embedding_size,
+                                                   rnn_size,
+                                                   num_layers,
+                                                   target_vocab_to_int)
 
+        # input_data, target_data, keep_prob, batch_size, sequence_length,
+        # 200, target_vocab_size, 64, 80, rnn_size, num_layers, target_vocab_to_int)
+
+        assert isinstance(train_decoder_output, tf.contrib.seq2seq.BasicDecoderOutput),\
+            'Found wrong type: {}'.format(type(train_decoder_output))
+        assert isinstance(infer_logits_output, tf.contrib.seq2seq.BasicDecoderOutput),\
+            'Found wrong type: {}'.format(type(infer_logits_output))
+
+        assert train_decoder_output.rnn_output.get_shape().as_list() == [batch_size, None, vocab_size], \
+            'Wrong shape returned.  Found {}'.format(train_decoder_output.get_shape())
+        assert infer_logits_output.sample_id.get_shape().as_list() == [batch_size, None], \
+             'Wrong shape returned.  Found {}'.format(infer_logits_output.sample_id.get_shape())
 
     _print_success_message()
 
@@ -206,13 +278,13 @@ def test_sentence_to_seq(sentence_to_seq):
     _print_success_message()
 
 
-def test_process_decoding_input(process_decoding_input):
+def test_process_encoding_input(process_encoding_input):
     batch_size = 2
     seq_length = 3
     target_vocab_to_int = {'<GO>': 3}
     with tf.Graph().as_default():
         target_data = tf.placeholder(tf.int32, [batch_size, seq_length])
-        dec_input = process_decoding_input(target_data, target_vocab_to_int, batch_size)
+        dec_input = process_encoding_input(target_data, target_vocab_to_int, batch_size)
 
         assert dec_input.get_shape() == (batch_size, seq_length),\
             'Wrong shape returned.  Found {}'.format(dec_input.get_shape())
@@ -238,25 +310,52 @@ def test_decoding_layer_train(decoding_layer_train):
 
     with tf.Graph().as_default():
         with tf.variable_scope("decoding") as decoding_scope:
-            dec_cell = tf.contrib.rnn.MultiRNNCell([tf.contrib.rnn.BasicLSTMCell(rnn_size)] * num_layers)
-            output_fn = lambda x: tf.contrib.layers.fully_connected(x, vocab_size, None, scope=decoding_scope)
-            dec_embed_input = tf.placeholder(tf.float32, [batch_size, 22, embedding_size])
+            # dec_cell = tf.contrib.rnn.MultiRNNCell([tf.contrib.rnn.BasicLSTMCell(rnn_size)] * num_layers)
+
+            dec_embed_input = tf.placeholder(tf.float32, [batch_size, sequence_length, embedding_size])
             keep_prob = tf.placeholder(tf.float32)
-            state = tf.contrib.rnn.LSTMStateTuple(
+            target_sequence_length_p = tf.placeholder(tf.int32, (None,), name='target_sequence_length')
+            max_target_sequence_length = tf.reduce_max(target_sequence_length_p, name='max_target_len')
+
+            for layer in range(num_layers):
+                with tf.variable_scope('decoder_{}'.format(layer)):
+                    lstm = tf.contrib.rnn.LSTMCell(rnn_size,
+                                                   initializer=tf.random_uniform_initializer(-0.1, 0.1, seed=2))
+                    dec_cell = tf.contrib.rnn.DropoutWrapper(lstm,
+                                                             input_keep_prob=keep_prob)
+
+            output_layer = Dense(vocab_size,
+                                 kernel_initializer=tf.truncated_normal_initializer(mean=0.0, stddev=0.1),
+                                 name='output_layer')
+            # output_fn = lambda x: tf.contrib.layers.fully_connected(x, vocab_size, None, scope=decoding_scope)
+
+
+            encoder_state = tf.contrib.rnn.LSTMStateTuple(
                 tf.placeholder(tf.float32, [None, rnn_size]),
                 tf.placeholder(tf.float32, [None, rnn_size]))
-            encoder_state = (state, state, state)
 
-            train_logits = decoding_layer_train(encoder_state, dec_cell, dec_embed_input, sequence_length,
-                                 decoding_scope, output_fn, keep_prob)
+            train_decoder_output = decoding_layer_train(encoder_state, dec_cell,
+                                        dec_embed_input,
+                                        target_sequence_length_p,
+                                        max_target_sequence_length,
+                                        output_layer,
+                                        keep_prob)
 
-            assert train_logits.get_shape().as_list() == [batch_size, None, vocab_size], \
-                'Wrong shape returned.  Found {}'.format(train_logits.get_shape())
+            # encoder_state, dec_cell, dec_embed_input, sequence_length,
+            #                      decoding_scope, output_fn, keep_prob)
+
+
+            assert isinstance(train_decoder_output, tf.contrib.seq2seq.BasicDecoderOutput),\
+                'Found wrong type: {}'.format(type(train_decoder_output))
+
+            assert train_decoder_output.rnn_output.get_shape().as_list() == [batch_size, None, vocab_size], \
+                'Wrong shape returned.  Found {}'.format(train_decoder_output.get_shape())
 
     _print_success_message()
 
 
 def test_decoding_layer_infer(decoding_layer_infer):
+    batch_size = 64
     vocab_size = 1000
     sequence_length = 22
     embedding_size = 200
@@ -265,19 +364,50 @@ def test_decoding_layer_infer(decoding_layer_infer):
 
     with tf.Graph().as_default():
         with tf.variable_scope("decoding") as decoding_scope:
-            dec_cell = tf.contrib.rnn.MultiRNNCell([tf.contrib.rnn.BasicLSTMCell(rnn_size)] * num_layers)
-            output_fn = lambda x: tf.contrib.layers.fully_connected(x, vocab_size, None, scope=decoding_scope)
-            dec_embeddings = tf.placeholder(tf.float32, [vocab_size, embedding_size])
+
+            dec_embeddings = tf.Variable(tf.random_uniform([vocab_size, embedding_size]))
+
+            dec_embed_input = tf.placeholder(tf.float32, [batch_size, sequence_length, embedding_size])
             keep_prob = tf.placeholder(tf.float32)
-            state = tf.contrib.rnn.LSTMStateTuple(
+            target_sequence_length_p = tf.placeholder(tf.int32, (None,), name='target_sequence_length')
+            max_target_sequence_length = tf.reduce_max(target_sequence_length_p, name='max_target_len')
+
+            for layer in range(num_layers):
+                with tf.variable_scope('decoder_{}'.format(layer)):
+                    lstm = tf.contrib.rnn.LSTMCell(rnn_size,
+                                                   initializer=tf.random_uniform_initializer(-0.1, 0.1, seed=2))
+                    dec_cell = tf.contrib.rnn.DropoutWrapper(lstm,
+                                                             input_keep_prob=keep_prob)
+
+            output_layer = Dense(vocab_size,
+                                 kernel_initializer=tf.truncated_normal_initializer(mean=0.0, stddev=0.1),
+                                 name='output_layer')
+            # output_fn = lambda x: tf.contrib.layers.fully_connected(x, vocab_size, None, scope=decoding_scope)
+
+
+            encoder_state = tf.contrib.rnn.LSTMStateTuple(
                 tf.placeholder(tf.float32, [None, rnn_size]),
                 tf.placeholder(tf.float32, [None, rnn_size]))
-            encoder_state = (state, state, state)
 
-            infer_logits = decoding_layer_infer(encoder_state, dec_cell, dec_embeddings, 10, 20,
-                                sequence_length, vocab_size, decoding_scope, output_fn, keep_prob)
+            infer_logits_output = decoding_layer_infer( encoder_state,
+                                                        dec_cell,
+                                                        dec_embeddings,
+                                                        1,
+                                                        2,
+                                                        max_target_sequence_length,
+                                                        vocab_size,
+                                                        output_layer,
+                                                        batch_size,
+                                                        keep_prob)
 
-            assert infer_logits.get_shape().as_list() == [None, None, vocab_size], \
-                 'Wrong shape returned.  Found {}'.format(infer_logits.get_shape())
+            # encoder_state, dec_cell, dec_embeddings, 10, 20,
+            #                     sequence_length, vocab_size, decoding_scope, output_fn, keep_prob)
+
+
+            assert isinstance(infer_logits_output, tf.contrib.seq2seq.BasicDecoderOutput),\
+                'Found wrong type: {}'.format(type(infer_logits_output))
+
+            assert infer_logits_output.sample_id.get_shape().as_list() == [batch_size, None], \
+                 'Wrong shape returned.  Found {}'.format(infer_logits_output.sample_id.get_shape())
 
     _print_success_message()
