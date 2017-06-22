@@ -1,296 +1,283 @@
 import numpy as np
 import tensorflow as tf
-from tensorflow.contrib import rnn
+import itertools
+import collections
+import helper
 
 
 def _print_success_message():
     print('Tests Passed')
 
 
-def test_create_lookup_tables(create_lookup_tables):
-    with tf.Graph().as_default():
-        test_text = '''
-        Moe_Szyslak Moe's Tavern Where the elite meet to drink
-        Bart_Simpson Eh yeah hello is Mike there Last name Rotch
-        Moe_Szyslak Hold on I'll check Mike Rotch Mike Rotch Hey has anybody seen Mike Rotch lately
-        Moe_Szyslak Listen you little puke One of these days I'm gonna catch you and I'm gonna carve my name on your back with an ice pick
-        Moe_Szyslak Whats the matter Homer You're not your normal effervescent self
-        Homer_Simpson I got my problems Moe Give me another one
-        Moe_Szyslak Homer hey you should not drink to forget your problems
-        Barney_Gumble Yeah you should only drink to enhance your social skills'''
+def test_text_to_ids(text_to_ids):
+    test_source_text = 'new jersey is sometimes quiet during autumn , and it is snowy in april .\nthe united states is usually chilly during july , and it is usually freezing in november .\ncalifornia is usually quiet during march , and it is usually hot in june .\nthe united states is sometimes mild during june , and it is cold in september .'
+    test_target_text = 'new jersey est parfois calme pendant l\' automne , et il est neigeux en avril .\nles états-unis est généralement froid en juillet , et il gèle habituellement en novembre .\ncalifornia est généralement calme en mars , et il est généralement chaud en juin .\nles états-unis est parfois légère en juin , et il fait froid en septembre .'
 
-        test_text = test_text.lower()
-        test_text = test_text.split()
+    test_source_text = test_source_text.lower()
+    test_target_text = test_target_text.lower()
 
-        vocab_to_int, int_to_vocab = create_lookup_tables(test_text)
+    source_vocab_to_int, source_int_to_vocab = helper.create_lookup_tables(test_source_text)
+    target_vocab_to_int, target_int_to_vocab = helper.create_lookup_tables(test_target_text)
 
-        # Check types
-        assert isinstance(vocab_to_int, dict),\
-            'vocab_to_int is not a dictionary.'
-        assert isinstance(int_to_vocab, dict),\
-            'int_to_vocab is not a dictionary.'
+    test_source_id_seq, test_target_id_seq = text_to_ids(test_source_text, test_target_text, source_vocab_to_int, target_vocab_to_int)
 
-        # Compare lengths of dicts
-        assert len(vocab_to_int) == len(int_to_vocab),\
-            'Length of vocab_to_int and int_to_vocab don\'t match. ' \
-            'vocab_to_int is length {}. int_to_vocab is length {}'.format(len(vocab_to_int), len(int_to_vocab))
+    assert len(test_source_id_seq) == len(test_source_text.split('\n')),\
+        'source_id_text has wrong length, it should be {}.'.format(len(test_source_text.split('\n')))
+    assert len(test_target_id_seq) == len(test_target_text.split('\n')), \
+        'target_id_text has wrong length, it should be {}.'.format(len(test_target_text.split('\n')))
 
-        # Make sure the dicts have the same words
-        vocab_to_int_word_set = set(vocab_to_int.keys())
-        int_to_vocab_word_set = set(int_to_vocab.values())
+    target_not_iter = [type(x) for x in test_source_id_seq if not isinstance(x, collections.Iterable)]
+    assert not target_not_iter,\
+        'Element in source_id_text is not iteratable.  Found type {}'.format(target_not_iter[0])
+    target_not_iter = [type(x) for x in test_target_id_seq if not isinstance(x, collections.Iterable)]
+    assert not target_not_iter, \
+        'Element in target_id_text is not iteratable.  Found type {}'.format(target_not_iter[0])
 
-        assert not (vocab_to_int_word_set - int_to_vocab_word_set),\
-            'vocab_to_int and int_to_vocab don\'t have the same words.' \
-            '{} found in vocab_to_int, but not in int_to_vocab'.format(vocab_to_int_word_set - int_to_vocab_word_set)
-        assert not (int_to_vocab_word_set - vocab_to_int_word_set),\
-            'vocab_to_int and int_to_vocab don\'t have the same words.' \
-            '{} found in int_to_vocab, but not in vocab_to_int'.format(int_to_vocab_word_set - vocab_to_int_word_set)
+    source_changed_length = [(words, word_ids)
+                             for words, word_ids in zip(test_source_text.split('\n'), test_source_id_seq)
+                             if len(words.split()) != len(word_ids)]
+    assert not source_changed_length,\
+        'Source text changed in size from {} word(s) to {} id(s): {}'.format(
+            len(source_changed_length[0][0].split()), len(source_changed_length[0][1]), source_changed_length[0][1])
 
-        # Make sure the dicts have the same word ids
-        vocab_to_int_word_id_set = set(vocab_to_int.values())
-        int_to_vocab_word_id_set = set(int_to_vocab.keys())
+    target_missing_end = [word_ids for word_ids in test_target_id_seq if word_ids[-1] != target_vocab_to_int['<EOS>']]
+    assert not target_missing_end,\
+        'Missing <EOS> id at the end of {}'.format(target_missing_end[0])
 
-        assert not (vocab_to_int_word_id_set - int_to_vocab_word_id_set),\
-            'vocab_to_int and int_to_vocab don\'t contain the same word ids.' \
-            '{} found in vocab_to_int, but not in int_to_vocab'.format(vocab_to_int_word_id_set - int_to_vocab_word_id_set)
-        assert not (int_to_vocab_word_id_set - vocab_to_int_word_id_set),\
-            'vocab_to_int and int_to_vocab don\'t contain the same word ids.' \
-            '{} found in int_to_vocab, but not in vocab_to_int'.format(int_to_vocab_word_id_set - vocab_to_int_word_id_set)
+    target_bad_size = [(words.split(), word_ids)
+                       for words, word_ids in zip(test_target_text.split('\n'), test_target_id_seq)
+                       if len(word_ids) != len(words.split()) + 1]
+    assert not target_bad_size,\
+        'Target text incorrect size.  {} should be length {}'.format(
+            target_bad_size[0][1], len(target_bad_size[0][0]) + 1)
 
-        # Make sure the dicts make the same lookup
-        missmatches = [(word, id, id, int_to_vocab[id]) for word, id in vocab_to_int.items() if int_to_vocab[id] != word]
+    source_bad_id = [(word, word_id)
+                     for word, word_id in zip(
+                        [word for sentence in test_source_text.split('\n') for word in sentence.split()],
+                        itertools.chain.from_iterable(test_source_id_seq))
+                     if source_vocab_to_int[word] != word_id]
+    assert not source_bad_id,\
+        'Source word incorrectly converted from {} to id {}.'.format(source_bad_id[0][0], source_bad_id[0][1])
 
-        assert not missmatches,\
-            'Found {} missmatche(s). First missmatch: vocab_to_int[{}] = {} and int_to_vocab[{}] = {}'.format(
-                len(missmatches),
-                *missmatches[0])
-
-        assert len(vocab_to_int) > len(set(test_text))/2,\
-            'The length of vocab seems too small.  Found a length of {}'.format(len(vocab_to_int))
+    target_bad_id = [(word, word_id)
+                     for word, word_id in zip(
+                        [word for sentence in test_target_text.split('\n') for word in sentence.split()],
+                        [word_id for word_ids in test_target_id_seq for word_id in word_ids[:-1]])
+                     if target_vocab_to_int[word] != word_id]
+    assert not target_bad_id,\
+        'Target word incorrectly converted from {} to id {}.'.format(target_bad_id[0][0], target_bad_id[0][1])
 
     _print_success_message()
 
 
-def test_get_batches(get_batches):
+def test_model_inputs(model_inputs):
     with tf.Graph().as_default():
-        test_batch_size = 128
-        test_seq_length = 5
-        test_int_text = list(range(1000*test_seq_length))
-        batches = get_batches(test_int_text, test_batch_size, test_seq_length)
-
-        # Check type
-        assert isinstance(batches, np.ndarray),\
-            'Batches is not a Numpy array'
-
-        # Check shape
-        assert batches.shape == (7, 2, 128, 5),\
-            'Batches returned wrong shape.  Found {}'.format(batches.shape)
-
-    _print_success_message()
-
-
-def test_tokenize(token_lookup):
-    with tf.Graph().as_default():
-        symbols = set(['.', ',', '"', ';', '!', '?', '(', ')', '--', '\n'])
-        token_dict = token_lookup()
-
-        # Check type
-        assert isinstance(token_dict, dict), \
-            'Returned type is {}.'.format(type(token_dict))
-
-        # Check symbols
-        missing_symbols = symbols - set(token_dict.keys())
-        unknown_symbols = set(token_dict.keys()) - symbols
-
-        assert not missing_symbols, \
-            'Missing symbols: {}'.format(missing_symbols)
-        assert not unknown_symbols, \
-            'Unknown symbols: {}'.format(unknown_symbols)
-
-        # Check values type
-        bad_value_type = [type(val) for val in token_dict.values() if not isinstance(val, str)]
-
-        assert not bad_value_type,\
-            'Found token as {} type.'.format(bad_value_type[0])
-
-        # Check for spaces
-        key_has_spaces = [k for k in token_dict.keys() if ' ' in k]
-        val_has_spaces = [val for val in token_dict.values() if ' ' in val]
-
-        assert not key_has_spaces,\
-            'The key "{}" includes spaces. Remove spaces from keys and values'.format(key_has_spaces[0])
-        assert not val_has_spaces,\
-            'The value "{}" includes spaces. Remove spaces from keys and values'.format(val_has_spaces[0])
-
-        # Check for symbols in values
-        symbol_val = ()
-        for symbol in symbols:
-            for val in token_dict.values():
-                if symbol in val:
-                    symbol_val = (symbol, val)
-
-        assert not symbol_val,\
-            'Don\'t use a symbol that will be replaced in your tokens. Found the symbol {} in value {}'.format(*symbol_val)
-
-    _print_success_message()
-
-
-def test_get_inputs(get_inputs):
-    with tf.Graph().as_default():
-        input_data, targets, lr = get_inputs()
+        input_data, targets, lr, keep_prob = model_inputs()
 
         # Check type
         assert input_data.op.type == 'Placeholder',\
-            'Input not a Placeholder.'
+            'Input is not a Placeholder.'
         assert targets.op.type == 'Placeholder',\
-            'Targets not a Placeholder.'
+            'Targets is not a Placeholder.'
         assert lr.op.type == 'Placeholder',\
-            'Learning Rate not a Placeholder.'
+            'Learning Rate is not a Placeholder.'
+        assert keep_prob.op.type == 'Placeholder', \
+            'Keep Probability is not a Placeholder.'
 
         # Check name
         assert input_data.name == 'input:0',\
             'Input has bad name.  Found name {}'.format(input_data.name)
+        assert keep_prob.name == 'keep_prob:0', \
+            'Keep Probability has bad name.  Found name {}'.format(keep_prob.name)
 
-        # Check rank
-        input_rank = 0 if input_data.get_shape() == None else len(input_data.get_shape())
-        targets_rank = 0 if targets.get_shape() == None else len(targets.get_shape())
-        lr_rank = 0 if lr.get_shape() == None else len(lr.get_shape())
-
-        assert input_rank == 2,\
-            'Input has wrong rank.  Rank {} found.'.format(input_rank)
-        assert targets_rank == 2,\
-            'Targets has wrong rank. Rank {} found.'.format(targets_rank)
-        assert lr_rank == 0,\
-            'Learning Rate has wrong rank. Rank {} found'.format(lr_rank)
+        assert tf.assert_rank(input_data, 2, message='Input data has wrong rank')
+        assert tf.assert_rank(targets, 2, message='Targets has wrong rank')
+        assert tf.assert_rank(lr, 0, message='Learning Rate has wrong rank')
+        assert tf.assert_rank(keep_prob, 0, message='Keep Probability has wrong rank')
 
     _print_success_message()
 
 
-def test_get_init_cell(get_init_cell):
+def test_encoding_layer(encoding_layer):
+    rnn_size = 512
+    batch_size = 64
+    num_layers = 3
+
     with tf.Graph().as_default():
-        test_batch_size_ph = tf.placeholder(tf.int32)
-        test_rnn_size = 256
+        rnn_inputs = tf.placeholder(tf.float32, [batch_size, 22, 1000])
+        keep_prob = tf.placeholder(tf.float32)
+        states = encoding_layer(rnn_inputs, rnn_size, num_layers, keep_prob)
 
-        cell, init_state = get_init_cell(test_batch_size_ph, test_rnn_size)
+        assert len(states) == num_layers,\
+            'Found {} state(s). It should be {} states.'.format(len(states), num_layers)
 
-        # Check type
-        assert isinstance(cell, tf.contrib.rnn.MultiRNNCell),\
-            'Cell is wrong type.  Found {} type'.format(type(cell))
+        bad_types = [type(state) for state in states if not isinstance(state, tf.contrib.rnn.LSTMStateTuple)]
+        assert not bad_types,\
+            'Found wrong type: {}'.format(bad_types[0])
 
-        # Check for name attribute
-        assert hasattr(init_state, 'name'),\
-            'Initial state doesn\'t have the "name" attribute.  Try using `tf.identity` to set the name.'
-
-        # Check name
-        assert init_state.name == 'initial_state:0',\
-            'Initial state doesn\'t have the correct name. Found the name {}'.format(init_state.name)
+        bad_shapes = [state_tensor.get_shape()
+                      for state in states
+                      for state_tensor in state
+                      if state_tensor.get_shape().as_list() not in [[None, rnn_size], [batch_size, rnn_size]]]
+        assert not bad_shapes,\
+            'Found wrong shape: {}'.format(bad_shapes[0])
 
     _print_success_message()
 
 
-def test_get_embed(get_embed):
+def test_decoding_layer(decoding_layer):
+    batch_size = 64
+    vocab_size = 1000
+    embedding_size = 200
+    sequence_length = 22
+    rnn_size = 512
+    num_layers = 3
+    target_vocab_to_int = {'<EOS>': 1, '<GO>': 3}
+
     with tf.Graph().as_default():
-        embed_shape = [50, 5, 256]
-        test_input_data = tf.placeholder(tf.int32, embed_shape[:2])
-        test_vocab_size = 27
-        test_embed_dim = embed_shape[2]
+        dec_embed_input = tf.placeholder(tf.float32, [batch_size, 22, embedding_size])
+        dec_embeddings = tf.placeholder(tf.float32, [vocab_size, embedding_size])
+        keep_prob = tf.placeholder(tf.float32)
+        state = tf.contrib.rnn.LSTMStateTuple(
+            tf.placeholder(tf.float32, [None, rnn_size]),
+            tf.placeholder(tf.float32, [None, rnn_size]))
+        encoder_state = (state, state, state)
 
-        embed = get_embed(test_input_data, test_vocab_size, test_embed_dim)
+        train_output, inf_output = decoding_layer(dec_embed_input, dec_embeddings, encoder_state, vocab_size,
+                                                  sequence_length, rnn_size, num_layers, target_vocab_to_int, keep_prob)
 
-        # Check shape
-        assert embed.shape == embed_shape,\
-            'Wrong shape.  Found shape {}'.format(embed.shape)
+        assert isinstance(train_output, tf.Tensor),\
+            'Train Logits is wrong type: {}'.format(type(train_output))
+        assert isinstance(inf_output, tf.Tensor), \
+            'Inference Logits is wrong type: {}'.format(type(inf_output))
+
+        assert train_output.get_shape().as_list() == [batch_size, None, vocab_size],\
+            'Train Logits is the wrong shape: {}'.format(train_output.get_shape())
+        assert inf_output.get_shape().as_list() == [None, None, vocab_size], \
+            'Inference Logits is the wrong shape: {}'.format(inf_output.get_shape())
 
     _print_success_message()
 
 
-def test_build_rnn(build_rnn):
+def test_seq2seq_model(seq2seq_model):
+    batch_size = 64
+    target_vocab_size = 300
+    sequence_length = 22
+    rnn_size = 512
+    num_layers = 3
+    target_vocab_to_int = {'<EOS>': 1, '<GO>': 3}
+
     with tf.Graph().as_default():
-        test_rnn_size = 256
-        test_rnn_layer_size = 2
-        test_cell = rnn.MultiRNNCell([rnn.BasicLSTMCell(test_rnn_size)] * test_rnn_layer_size)
+        input_data = tf.placeholder(tf.int32, [64, 22])
+        target_data = tf.placeholder(tf.int32, [64, 22])
+        keep_prob = tf.placeholder(tf.float32)
+        train_output, inf_output = seq2seq_model(input_data, target_data, keep_prob, batch_size, sequence_length,
+                                                 200, target_vocab_size, 64, 80, rnn_size, num_layers, target_vocab_to_int)
 
-        test_inputs = tf.placeholder(tf.float32, [None, None, test_rnn_size])
-        outputs, final_state = build_rnn(test_cell, test_inputs)
+        assert isinstance(train_output, tf.Tensor),\
+            'Train Logits is wrong type: {}'.format(type(train_output))
+        assert isinstance(inf_output, tf.Tensor), \
+            'Inference Logits is wrong type: {}'.format(type(inf_output))
 
-        # Check name
-        assert hasattr(final_state, 'name'),\
-            'Final state doesn\'t have the "name" attribute.  Try using `tf.identity` to set the name.'
-        assert final_state.name == 'final_state:0',\
-            'Final state doesn\'t have the correct name. Found the name {}'.format(final_state.name)
+        assert train_output.get_shape().as_list() == [batch_size, None, target_vocab_size],\
+            'Train Logits is the wrong shape: {}'.format(train_output.get_shape())
+        assert inf_output.get_shape().as_list() == [None, None, target_vocab_size], \
+            'Inference Logits is the wrong shape: {}'.format(inf_output.get_shape())
 
-        # Check shape
-        assert outputs.get_shape().as_list() == [None, None, test_rnn_size],\
-            'Outputs has wrong shape.  Found shape {}'.format(outputs.get_shape())
-        assert final_state.get_shape().as_list() == [test_rnn_layer_size, 2, None, test_rnn_size],\
-            'Final state wrong shape.  Found shape {}'.format(final_state.get_shape())
 
     _print_success_message()
 
 
-def test_build_nn(build_nn):
+def test_sentence_to_seq(sentence_to_seq):
+    sentence = 'this is a test sentence'
+    vocab_to_int = {'<PAD>': 0, '<EOS>': 1, '<UNK>': 2, 'this': 3, 'is': 6, 'a': 5, 'sentence': 4}
+
+    output = sentence_to_seq(sentence, vocab_to_int)
+
+    assert len(output) == 5,\
+        'Wrong length. Found a length of {}'.format(len(output))
+
+    assert output[3] == 2,\
+        'Missing <UNK> id.'
+
+    assert np.array_equal(output, [3, 6, 5, 2, 4]),\
+        'Incorrect ouput. Found {}'.format(output)
+
+    _print_success_message()
+
+
+def test_process_decoding_input(process_decoding_input):
+    batch_size = 2
+    seq_length = 3
+    target_vocab_to_int = {'<GO>': 3}
     with tf.Graph().as_default():
-        test_input_data_shape = [128, 5]
-        test_input_data = tf.placeholder(tf.int32, test_input_data_shape)
-        test_rnn_size = 256
-        test_rnn_layer_size = 2
-        test_vocab_size = 27
-        test_cell = rnn.MultiRNNCell([rnn.BasicLSTMCell(test_rnn_size)] * test_rnn_layer_size)
+        target_data = tf.placeholder(tf.int32, [batch_size, seq_length])
+        dec_input = process_decoding_input(target_data, target_vocab_to_int, batch_size)
 
-        logits, final_state = build_nn(test_cell, test_rnn_size, test_input_data, test_vocab_size)
+        assert dec_input.get_shape() == (batch_size, seq_length),\
+            'Wrong shape returned.  Found {}'.format(dec_input.get_shape())
 
-        # Check name
-        assert hasattr(final_state, 'name'), \
-            'Final state doesn\'t have the "name" attribute.  Are you using build_rnn?'
-        assert final_state.name == 'final_state:0', \
-            'Final state doesn\'t have the correct name. Found the name {}. Are you using build_rnn?'.format(final_state.name)
+        test_target_data = [[10, 20, 30], [40, 18, 23]]
+        with tf.Session() as sess:
+            test_dec_input = sess.run(dec_input, {target_data: test_target_data})
 
-        # Check Shape
-        assert logits.get_shape().as_list() == test_input_data_shape + [test_vocab_size], \
-            'Outputs has wrong shape.  Found shape {}'.format(logits.get_shape())
-        assert final_state.get_shape().as_list() == [test_rnn_layer_size, 2, None, test_rnn_size], \
-            'Final state wrong shape.  Found shape {}'.format(final_state.get_shape())
+        assert test_dec_input[0][0] == target_vocab_to_int['<GO>'] and\
+               test_dec_input[1][0] == target_vocab_to_int['<GO>'],\
+            'Missing GO Id.'
 
     _print_success_message()
 
 
-def test_get_tensors(get_tensors):
-    test_graph = tf.Graph()
-    with test_graph.as_default():
-        test_input = tf.placeholder(tf.int32, name='input')
-        test_initial_state = tf.placeholder(tf.int32, name='initial_state')
-        test_final_state = tf.placeholder(tf.int32, name='final_state')
-        test_probs = tf.placeholder(tf.float32, name='probs')
+def test_decoding_layer_train(decoding_layer_train):
+    batch_size = 64
+    vocab_size = 1000
+    embedding_size = 200
+    sequence_length = 22
+    rnn_size = 512
+    num_layers = 3
 
-    input_text, initial_state, final_state, probs = get_tensors(test_graph)
-
-    # Check correct tensor
-    assert input_text == test_input,\
-        'Test input is wrong tensor'
-    assert initial_state == test_initial_state, \
-        'Initial state is wrong tensor'
-    assert final_state == test_final_state, \
-        'Final state is wrong tensor'
-    assert probs == test_probs, \
-        'Probabilities is wrong tensor'
-
-    _print_success_message()
-
-
-def test_pick_word(pick_word):
     with tf.Graph().as_default():
-        test_probabilities = np.array([0.1, 0.8, 0.05, 0.05])
-        test_int_to_vocab = {word_i: word for word_i, word in enumerate(['this', 'is', 'a', 'test'])}
+        with tf.variable_scope("decoding") as decoding_scope:
+            dec_cell = tf.contrib.rnn.MultiRNNCell([tf.contrib.rnn.BasicLSTMCell(rnn_size)] * num_layers)
+            output_fn = lambda x: tf.contrib.layers.fully_connected(x, vocab_size, None, scope=decoding_scope)
+            dec_embed_input = tf.placeholder(tf.float32, [batch_size, 22, embedding_size])
+            keep_prob = tf.placeholder(tf.float32)
+            state = tf.contrib.rnn.LSTMStateTuple(
+                tf.placeholder(tf.float32, [None, rnn_size]),
+                tf.placeholder(tf.float32, [None, rnn_size]))
+            encoder_state = (state, state, state)
 
-        pred_word = pick_word(test_probabilities, test_int_to_vocab)
+            train_logits = decoding_layer_train(encoder_state, dec_cell, dec_embed_input, sequence_length,
+                                 decoding_scope, output_fn, keep_prob)
 
-        # Check type
-        assert isinstance(pred_word, str),\
-            'Predicted word is wrong type. Found {} type.'.format(type(pred_word))
+            assert train_logits.get_shape().as_list() == [batch_size, None, vocab_size], \
+                'Wrong shape returned.  Found {}'.format(train_logits.get_shape())
 
-        # Check word is from vocab
-        assert pred_word in test_int_to_vocab.values(),\
-            'Predicted word not found in int_to_vocab.'
+    _print_success_message()
 
+
+def test_decoding_layer_infer(decoding_layer_infer):
+    vocab_size = 1000
+    sequence_length = 22
+    embedding_size = 200
+    rnn_size = 512
+    num_layers = 3
+
+    with tf.Graph().as_default():
+        with tf.variable_scope("decoding") as decoding_scope:
+            dec_cell = tf.contrib.rnn.MultiRNNCell([tf.contrib.rnn.BasicLSTMCell(rnn_size)] * num_layers)
+            output_fn = lambda x: tf.contrib.layers.fully_connected(x, vocab_size, None, scope=decoding_scope)
+            dec_embeddings = tf.placeholder(tf.float32, [vocab_size, embedding_size])
+            keep_prob = tf.placeholder(tf.float32)
+            state = tf.contrib.rnn.LSTMStateTuple(
+                tf.placeholder(tf.float32, [None, rnn_size]),
+                tf.placeholder(tf.float32, [None, rnn_size]))
+            encoder_state = (state, state, state)
+
+            infer_logits = decoding_layer_infer(encoder_state, dec_cell, dec_embeddings, 10, 20,
+                                sequence_length, vocab_size, decoding_scope, output_fn, keep_prob)
+
+            assert infer_logits.get_shape().as_list() == [None, None, vocab_size], \
+                 'Wrong shape returned.  Found {}'.format(infer_logits.get_shape())
 
     _print_success_message()

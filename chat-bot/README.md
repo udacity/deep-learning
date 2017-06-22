@@ -1,8 +1,11 @@
-# TV Script Generation
+# Language Translation
 
-Generate Simpsons TV scripts using RNNs. This project uses part of the Simpsons dataset of scripts from 27 seasons. The Neural Network will generate a new TV script for a scene at Moe's Tavern.
+A sequence to sequence model on a dataset of English and French sentences that can translate new sentences from English to French using Tensorflow.
 
-## Dependencies
-- Python 3.x
-- Tensorflow > 1.0
-- Numpy
+The dataset is provided for easy reproduction. Although small, the dataset used in this notebook serves as a reasonable sanity test for the network which emphasizes the key data processing steps for this types of models to be trained successfully.
+
+Bellow, one can see the model's loss and accuracy curves during training which emphasizes good generalization on this dataset.
+
+![Loss and Accuracy curves](./results/loss_acc.PNG)
+
+*This notebook is part of my work on the Deep Learning Nanodegree from Udacity.*
