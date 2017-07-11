@@ -86,6 +86,20 @@ def test_get_batches(get_batches):
         assert batches.shape == (7, 2, 128, 5),\
             'Batches returned wrong shape.  Found {}'.format(batches.shape)
 
+        for x in range(batches.shape[2]):
+            assert np.array_equal(batches[0,0,x], np.array(range(x * 35, x * 35 + batches.shape[3]))),\
+                'Batches returned wrong contents. For example, input sequence {} in the first batch was {}'.format(x, batches[0,0,x])
+            assert np.array_equal(batches[0,1,x], np.array(range(x * 35 + 1, x * 35 + 1 + batches.shape[3]))),\
+                'Batches returned wrong contents. For example, target sequence {} in the first batch was {}'.format(x, batches[0,1,x])
+
+
+        last_seq_target = (test_batch_size-1) * 35 + 31
+        last_seq = np.array(range(last_seq_target, last_seq_target+ batches.shape[3]))
+        last_seq[-1] = batches[0,0,0,0]
+
+        assert np.array_equal(batches[-1,1,-1], last_seq),\
+            'The last target of the last batch should be the first input of the first batch. Found {} but expected {}'.format(batches[-1,1,-1], last_seq)
+
     _print_success_message()
 
 
@@ -295,3 +309,4 @@ def test_pick_word(pick_word):
 
 
     _print_success_message()
+
