@@ -21,3 +21,4 @@ image_classification.meta
 preprocess_batch_*.p
 preprocess_training.p
 preprocess_validation.p
+preprocess_test.p
