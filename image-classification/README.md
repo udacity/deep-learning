@@ -6,7 +6,7 @@
 
         pip install -U floyd-cli
         
-    Do this even if you already installed `floyd-cli` before, just to make sure you have the most recent version (Its pace of development is fast!).
+    Do this even if you already installed `floyd-cli` before, just to make sure you have the most recent version (its peace of development is fast!).
 
 3. Associate the command with your Floyd account:
 
