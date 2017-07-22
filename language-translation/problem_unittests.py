@@ -338,8 +338,7 @@ def test_decoding_layer_train(decoding_layer_train):
                                         dec_embed_input,
                                         target_sequence_length_p,
                                         max_target_sequence_length,
-                                        output_layer,
-                                        keep_prob)
+                                        output_layer)
 
             # encoder_state, dec_cell, dec_embed_input, sequence_length,
             #                      decoding_scope, output_fn, keep_prob)
