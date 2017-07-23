@@ -14,3 +14,6 @@ face_generation/data/
 
 */.floyd*
 
+image-classification/cifar*
+tv-script-generation/checkpoint
+tv-script-generation/save*
