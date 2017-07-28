@@ -176,7 +176,14 @@ def test_get_inputs(get_inputs):
             'Targets has wrong rank. Rank {} found.'.format(targets_rank)
         assert lr_rank == 0,\
             'Learning Rate has wrong rank. Rank {} found'.format(lr_rank)
-
+            
+    tf.assert_type(lr, tf.float32,\
+              'Learning rate placeholder should be of type tf.float32')
+    tf.assert_type(input_data, tf.int32,\
+              'Inputs placeholder should be of type tf.float32')
+    tf.assert_type(targets, tf.int32,\
+              'Targets placeholder should be of type tf.float32')
+    
     _print_success_message()
 
 
