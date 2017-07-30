@@ -1,4 +1,3 @@
-
 # Directories to ignore when uploading code to floyd
 # Do not add a trailing slash for directories
 
@@ -21,3 +20,4 @@ image_classification.meta
 preprocess_batch_*.p
 preprocess_training.p
 preprocess_validation.p
+preprocess_test.p
