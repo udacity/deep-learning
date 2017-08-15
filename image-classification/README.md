@@ -1,6 +1,6 @@
 ## Running the Udacity Deep Learning Foundations image classification project on floydhub.com
 
-1. Create an account on [floydhub.com](https://www.floydhub.com) (don't forget to confirm your email). You will automatically receive 100 free GPU hours. 
+1. Create an account on [floydhub.com](https://www.floydhub.com) (don't forget to confirm your email). Create an individual account on floydhub.com (don't forget to confirm your email). (You won’t be able to finish most projects in the one hour allowed for free trials). Prices for floydhub.com are currently $0.432 / hour of GPU use, and most of your projects will run in around 2 - 3 hours. In order to minimize cost, you may want to try to both debug as much as possible on your local computer and make sure that you end your jobs soon after they finish.
 
 2. Install the `floyd` command on your computer:
 
