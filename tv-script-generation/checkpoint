@@ -1,0 +1,2 @@
+model_checkpoint_path: "save"
+all_model_checkpoint_paths: "save"
