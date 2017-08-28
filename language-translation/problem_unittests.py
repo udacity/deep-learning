@@ -87,7 +87,7 @@ def test_model_inputs(model_inputs):
         assert target_sequence_length.op.type == 'Placeholder', \
             'Target Sequence Length is not a Placeholder.'
         assert max_target_sequence_length.op.type == 'Max', \
-            'Max Target Sequence Length is not a Placeholder.'
+            'Max Target Sequence Length is not a Max type.'
         assert source_sequence_length.op.type == 'Placeholder', \
             'Source Sequence Length is not a Placeholder.'
 
