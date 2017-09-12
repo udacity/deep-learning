@@ -11,6 +11,7 @@ dependencies:
 - wheel=0.29.0
 - xz=5.2.2
 - zlib=1.2.8
+- tensorflow-gpu>=1.2.0
 - pip:
   - appnope==0.1.0
   - cycler==0.10.0
