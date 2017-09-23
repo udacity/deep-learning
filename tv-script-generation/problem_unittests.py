@@ -161,6 +161,14 @@ def test_get_inputs(get_inputs):
         assert lr.op.type == 'Placeholder',\
             'Learning Rate not a Placeholder.'
 
+        # Check dtype
+        assert input_data.dtype == tf.int32,\
+            'Input is not ingeger.'
+        assert targets.dtype == tf.int32,\
+            'Targets is not integer.'
+        assert lr.dtype == tf.float32,\
+            'Learning Rate is not a float.'
+
         # Check name
         assert input_data.name == 'input:0',\
             'Input has bad name.  Found name {}'.format(input_data.name)
@@ -265,6 +273,10 @@ def test_build_nn(build_nn):
             'Outputs has wrong shape.  Found shape {}'.format(logits.get_shape())
         assert final_state.get_shape().as_list() == [test_rnn_layer_size, 2, None, test_rnn_size], \
             'Final state wrong shape.  Found shape {}'.format(final_state.get_shape())
+
+        # Check activation fn
+        assert logits.name == 'fully_connected/Reshape_1:0', \
+            'Wrong activation function in output later'
 
     _print_success_message()
 
