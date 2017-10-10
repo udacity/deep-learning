@@ -244,7 +244,7 @@ def test_build_rnn(build_rnn):
 
 def test_build_nn(build_nn):
     with tf.Graph().as_default():
-        test_input_data_shape = [128, 5]
+        test_input_data_shape = [None, 5]
         test_input_data = tf.placeholder(tf.int32, test_input_data_shape)
         test_rnn_size = 256
         test_embed_dim = 300
