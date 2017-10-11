@@ -33,7 +33,7 @@ You are not required to use FloydHub for this project, but we've provided instru
 
 7. Wait for the Jupyter notebook to become available and then access the URL displayed in the terminal (described as "path to jupyter notebook"). You will see the notebook.
 
-8. Remember to explicitly stop the experiment when you are not using the notebook. As long as it runs (even in the background) it will cost GPU hours. You can stop an experiment in the ["Experiments" section on floyd.com](https://www.floydhub.com/experiments) or using the [floyd stop](https://docs.floydhub.com/guides/stop_job/) command.
+8. Remember to explicitly stop the job when you are not using the notebook. As long as it runs (even in the background) it will cost GPU hours. You can stop a job in the ["Jobs" section on floyd.com](https://www.floydhub.com/jobs) or using the [floyd stop](https://docs.floydhub.com/guides/stop_job/) command.
 
 **Important:** When you run a project it will always start from scratch (i.e. from the state present *locally* on your computer). If you made changes in the remote jupiter notebook during a previous run, the changes will **not** be present in subsequent runs. To make them permanent you need to add the changes to your local project folder. When running the notebook you can download them directly from Jupyter - *File / Download / Notebook*. After downloading it, just replace your local `dlnd_image_classification.ipynb` file with the newly downloaded one.
 
