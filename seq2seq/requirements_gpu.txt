@@ -1,0 +1,6 @@
+certifi==2017.7.27.1
+numpy==1.13.3
+protobuf==3.4.0
+six==1.11.0
+tensorflow-gpu==1.1.0
+Werkzeug==0.12.2
