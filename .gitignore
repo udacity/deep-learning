@@ -18,3 +18,4 @@ face_generation/data/
 */checkpoints
 
 save.*
+*.ckpt.*
