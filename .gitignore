@@ -19,5 +19,6 @@ face_generation/data/
 
 save.*
 *.ckpt.*
-data
-
+*data*
+*.gz
+codes
