@@ -1,5 +1,9 @@
 import os
 import pickle
+import torch
+
+
+SPECIAL_WORDS = {'PADDING': '<PAD>'}
 
 
 def load_data(path):
@@ -29,7 +33,7 @@ def preprocess_and_save_data(dataset_path, token_lookup, create_lookup_tables):
     text = text.lower()
     text = text.split()
 
-    vocab_to_int, int_to_vocab = create_lookup_tables(text)
+    vocab_to_int, int_to_vocab = create_lookup_tables(text + list(SPECIAL_WORDS.values()))
     int_text = [vocab_to_int[word] for word in text]
     pickle.dump((int_text, vocab_to_int, int_to_vocab, token_dict), open('preprocess.p', 'wb'))
 
@@ -41,15 +45,11 @@ def load_preprocess():
     return pickle.load(open('preprocess.p', mode='rb'))
 
 
-def save_params(params):
-    """
-    Save parameters to file
-    """
-    pickle.dump(params, open('params.p', 'wb'))
+def save_model(filename, decoder):
+    save_filename = os.path.splitext(os.path.basename(filename))[0] + '.pt'
+    torch.save(decoder, save_filename)
 
 
-def load_params():
-    """
-    Load parameters from file
-    """
-    return pickle.load(open('params.p', mode='rb'))
+def load_model(filename):
+    save_filename = os.path.splitext(os.path.basename(filename))[0] + '.pt'
+    return torch.load(save_filename)
