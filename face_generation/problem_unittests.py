@@ -123,7 +123,7 @@ def test_model_loss(model_loss):
     d_loss, g_loss = model_loss(input_real, input_z, out_channel_dim)
 
     _assert_tensor_shape(d_loss, [], 'Discriminator Loss')
-    _assert_tensor_shape(d_loss, [], 'Generator Loss')
+    _assert_tensor_shape(g_loss, [], 'Generator Loss')
 
 
 @test_safe
