@@ -106,7 +106,7 @@ def test_generator(generator, tf_module):
             'tf.variable_scope called with wrong arguments in Generator Training(reuse=false)'
 
         mock_variable_scope.reset_mock()
-        output = generator(z, out_channel_dim, False)
+        output = generator(z, out_channel_dim, reuse=True)
         _assert_tensor_shape(output, [None, 28, 28, out_channel_dim], 'Generator output (is_train=False)')
         assert mock_variable_scope.called, \
             'tf.variable_scope not called in Generator Inference(reuse=True)'
