@@ -121,7 +121,7 @@ def images_square_grid(images, mode):
             im = Image.fromarray(image, mode)
             new_im.paste(im, (col_i * images.shape[1], image_i * images.shape[2]))
 
-    return new_im
+    return new_im.convert('RGB')
 
 
 def download_extract(database_name, data_path):
