@@ -75,8 +75,6 @@ class NeuralNetwork(object):
 
         '''
         ### Backward pass ###
-
-        # TODO: Output error - Replace this value with your calculations.
         error = y - final_outputs # Output layer error is the difference between desired target and actual output.
 
         hidden_error = np.dot(self.weights_hidden_to_output, error)
