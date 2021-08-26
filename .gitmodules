@@ -1,3 +1,0 @@
-[submodule "reinforcement/gym"]
-	path = reinforcement/gym
-	url = https://github.com/openai/gym
