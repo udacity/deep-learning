@@ -1,8 +1,0 @@
-deprecated
-*.npy
-*.pyc
-__pycache__/
-*.py[cod]
-*$py.class
-dog_gr.jpg
-private
